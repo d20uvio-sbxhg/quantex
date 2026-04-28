@@ -1,0 +1,21 @@
+{
+  "name": "QUANTEX Pro · 股票智能分析",
+  "short_name": "QUANTEX",
+  "description": "台股美股40支 · 即時價格 · 回測預判 · 因子分析",
+  "start_url": "/quantex-pro.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "zh-TW",
+  "categories": ["finance", "business"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    { "name": "台股選股", "url": "/quantex-pro.html#picks-tw", "description": "台股20支分析" },
+    { "name": "美股選股", "url": "/quantex-pro.html#picks-us", "description": "美股20支分析" }
+  ]
+}
