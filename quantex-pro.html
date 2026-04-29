@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="QUANTEX"/>
+<meta name="application-name" content="QUANTEX"/>
+<meta name="theme-color" content="#0f172a"/>
+<meta name="description" content="台股美股智能分析 · 40支股票 · 即時回測預判"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="./manifest.json"/>
+<!-- iOS App Icons -->
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png"/>
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png"/>
+<link rel="apple-touch-startup-image" href="splash.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<title>QUANTEX Pro</title>
+<style>
+:root{--g:#16a34a;--gl:#f0fdf4;--gb:#bbf7d0;--r:#dc2626;--rl:#fff1f2;--rb:#fecaca;--a:#d97706;--al:#fffbeb;--ab:#fde68a;--b:#2563eb;--bl:#eff6ff;--bb:#bfdbfe;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#f0f2f8;font-family:'Noto Sans TC','PingFang TC',sans-serif;font-size:14px;color:#0f172a;}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;}
+button:active{transform:scale(.97);}
+.mono{font-family:Menlo,'JetBrains Mono',monospace;}
+#hdr{background:#0f172a;position:sticky;top:0;z-index:100;padding:11px 14px;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.htop{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.tabs{display:flex;background:#1e293b;border-radius:10px;padding:3px;}
+.tab{flex:1;padding:6px 3px;border-radius:8px;font-size:10px;font-weight:700;color:#475569;background:transparent;transition:all .2s;}
+.tab.active{background:#fff;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+#app{max-width:640px;margin:0 auto;padding:12px 14px 70px;}
+.mkt-row{display:flex;gap:8px;margin-bottom:12px;}
+.mkt-btn{flex:1;padding:10px;border-radius:12px;font-size:13px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;transition:all .15s;}
+.mkt-btn.on{border-color:#2563eb;background:#eff6ff;color:#2563eb;}
+.card{background:#fff;border-radius:14px;padding:12px 13px;margin-bottom:8px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.04);cursor:pointer;animation:fadeUp .3s ease both;}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-weight:900;font-size:10px;white-space:nowrap;border:1.5px solid;}
+.badge.lg{padding:4px 12px;font-size:12px;}
+.ring-wrap{position:relative;flex-shrink:0;}
+.ring-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.cbar{flex:1;height:4px;background:#f1f5f9;border-radius:99px;overflow:hidden;}
+.cfill{height:100%;border-radius:99px;transition:width .8s ease;}
+#modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9000;align-items:flex-end;justify-content:center;}
+#modal-bg.open{display:flex;}
+#modal{background:#f8fafc;border-radius:22px 22px 0 0;width:100%;max-width:580px;max-height:94vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.2);animation:slideUp .3s ease;}
+.mhandle{width:40px;height:4px;background:#e2e8f0;border-radius:99px;margin:12px auto 0;}
+.mbody{padding:13px 15px 40px;}
+#loading{position:fixed;inset:0;background:#0f172a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#loading.hide{display:none;}
+.ld-bar{width:220px;height:4px;background:#1e293b;border-radius:99px;overflow:hidden;}
+.ld-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:99px;transition:width .3s ease;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:320px;}
+.chip{font-size:9px;padding:2px 6px;border-radius:99px;font-family:monospace;}
+.chip.w{background:#1e293b;color:#334155;}
+.chip.g{background:#1e3a5f;color:#60a5fa;}
+.chip.ok{background:#064e3b;color:#34d399;}
+.live-dot{display:inline-block;width:5px;height:5px;background:#22c55e;border-radius:99px;margin-right:3px;animation:blink 2s infinite;}
+.sb{background:#0f172a;border-radius:16px;padding:13px;margin-bottom:11px;}
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.sc{text-align:center;padding:7px 3px;background:#1e293b;border-radius:9px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+.fr{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px;scrollbar-width:none;}
+.fr::-webkit-scrollbar{display:none;}
+.pill{flex-shrink:0;padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;white-space:nowrap;}
+.obox{border-radius:10px;padding:9px 10px;text-align:center;border:1px solid;}
+.obox-l{font-size:9px;color:#94a3b8;margin-bottom:2px;}
+.obox-v{font-size:12px;font-weight:900;}
+.pbox{background:#fff;border-radius:10px;padding:9px 11px;border:1px solid #e2e8f0;text-align:center;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.nbox{background:#eff6ff;border-radius:11px;padding:11px;margin-bottom:10px;border:1px solid #bfdbfe;}
+.rbox{display:flex;gap:7px;padding:9px 11px;background:#fffbeb;border-radius:9px;border:1px solid #fde68a;}
+.reason{display:flex;gap:7px;padding:7px 9px;border-radius:9px;font-size:11px;margin-bottom:4px;}
+.indr{margin-bottom:5px;}
+#pp{position:fixed;top:12px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;max-width:270px;}
+.pc{background:#fff;border-radius:11px;border:1.5px solid;border-left:4px solid;padding:9px 11px;box-shadow:0 4px 18px rgba(0,0,0,.11);animation:slideIn .3s ease;}
+.factor-box{border-radius:13px;padding:13px;margin-bottom:11px;border:2px solid;}
+.frow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.htc{background:#fff;border-radius:9px;padding:8px;text-align:center;border:1px solid #e2e8f0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div style="font-size:34px">📊</div>
+  <div style="font-size:16px;font-weight:900;color:#fff">QUANTEX Pro</div>
+  <div style="font-size:11px;color:#475569" id="ldst">抓取即時股價中...</div>
+  <div class="ld-bar"><div class="ld-fill" id="ldf" style="width:3%"></div></div>
+  <div class="chips" id="ldch"></div>
+  <div style="font-size:9px;color:#334155;margin-top:3px">Cloudflare Worker · 自動選股 · v5.0</div>
+</div>
+<div id="hdr">
+  <div class="htop">
+    <div>
+      <div style="font-size:8px;color:#334155;letter-spacing:3px;font-weight:700" class="mono">QUANTEX PRO · 全維度</div>
+      <div style="font-size:15px;font-weight:900;color:#fff">📈 智能分析系統</div>
+      <div style="font-size:9px;color:#22c55e;font-family:monospace;margin-top:1px">v5.0 · 2025.04.28</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:#475569" id="cdate"></div>
+      <div style="font-size:11px;font-weight:700;color:#22c55e;font-family:monospace" id="ctime"></div>
+      <div id="lupd" style="text-align:right;margin-top:2px"></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="setPage('picks')">📋 選股</button>
+    <button class="tab" onclick="setPage('predict')">🔮 預判</button>
+    <button class="tab" onclick="setPage('factor')">⚡ 因子</button>
+    <button class="tab" onclick="setPage('operation')">💡 操作</button>
+    <button class="tab" onclick="setPage('earnings')">📅 法說</button>
+  </div>
+</div>
+<div id="app"></div>
+<div id="pp"></div>
+<div id="modal-bg" onclick="closeBg(event)">
+  <div id="modal"><div class="mhandle"></div><div class="mbody" id="mbody"></div></div>
+</div>
+<script>
+var S={page:'picks',market:'tw',filter:'all',sort:'score',nid:0,notifs:[]};
+
+// ══════════════════════════════════════
+// 最強因子模型（動能+籌碼+法說前效應）
+// ══════════════════════════════════════
+function calcScore(s){
+  var sc=0;
+  // 技術面 45分
+  sc+=s.macd>8?10:s.macd>3?7:s.macd>0?4:s.macd>-3?1:0;
+  sc+=s.rsi>=50&&s.rsi<=65?8:s.rsi>=40&&s.rsi<50?5:s.rsi>=65&&s.rsi<=75?4:s.rsi<30?6:s.rsi>75?1:2;
+  sc+=s.kd_k>s.kd_d&&s.kd_k<80?8:s.kd_k>s.kd_d?3:s.kd_k<20?5:1;
+  sc+=s.boll>=0.4&&s.boll<=0.75?7:s.boll<0.2?5:s.boll>0.85?1:4;
+  sc+=s.obv==='strong_up'?7:s.obv==='up'?5:s.obv==='flat'?2:0;
+  sc+=s.ma==='bull_strong'?5:s.ma==='bull'?3:s.ma==='flat'?1:0;
+  // 籌碼面 30分
+  sc+=s.fd>=5?12:s.fd>=3?9:s.fd>=1?6:s.fd===0?3:s.fd>=-2?1:0;
+  sc+=s.td>=5?10:s.td>=3?7:s.td>=1?4:s.td<-2?0:2;
+  sc+=s.margin<20&&s.shorts>15?8:s.margin<25?6:s.margin<40?3:0;
+  // 總經面 15分
+  sc+=s.vix<16?5:s.vix<20?4:s.vix<25?2:s.vix<30?1:0;
+  sc+=s.pmi>55?5:s.pmi>52?4:s.pmi>50?3:s.pmi>48?1:0;
+  sc+=s.fed==='cut'?5:s.fed==='hold'?3:0;
+  // 新聞情緒 10分
+  sc+=s.ns>=8?10:s.ns>=6?7:s.ns>=4?4:s.ns>=2?2:0;
+  return Math.min(sc,100);
+}
+
+function calcDimensions(s){
+  var d={};
+  var t=0;
+  t+=s.macd>8?10:s.macd>3?7:s.macd>0?4:s.macd>-3?1:0;
+  t+=s.rsi>=50&&s.rsi<=65?7:s.rsi>=40&&s.rsi<50?4:s.rsi>=65&&s.rsi<=72?3:s.rsi<30?5:1;
+  t+=s.kd_k>s.kd_d&&s.kd_k<80?5:s.kd_k>s.kd_d?2:s.kd_k<20?3:0;
+  t+=s.boll>=0.4&&s.boll<=0.75?3:s.boll<0.2?2:0;
+  d.tech=Math.min(25,t);
+  var c=0;
+  c+=s.fd>=5?10:s.fd>=3?7:s.fd>=1?4:s.fd===0?2:0;
+  c+=s.td>=5?8:s.td>=3?6:s.td>=1?3:s.td<-2?0:1;
+  if(s.margin<18&&s.shorts>18)c+=5;else if(s.margin<22)c+=4;else if(s.margin<30)c+=2;
+  if(s.fd>=3&&s.td>=3)c+=2;
+  d.chip=Math.min(25,c);
+  var f=0;
+  f+=s.eps_growth>=30?6:s.eps_growth>=15?5:s.eps_growth>=5?3:s.eps_growth>=0?1:0;
+  f+=s.rev_accel==='accel'?5:s.rev_accel==='stable'?3:1;
+  f+=s.margin_trend==='expand'?5:s.margin_trend==='flat'?3:0;
+  f+=s.valuation==='cheap'?4:s.valuation==='fair'?3:s.valuation==='rich'?1:0;
+  d.fund=Math.min(20,f);
+  var r=0;
+  r+=s.rs_market>=85?6:s.rs_market>=70?5:s.rs_market>=50?3:s.rs_market>=30?1:0;
+  r+=s.rs_sector>=80?5:s.rs_sector>=60?4:s.rs_sector>=40?2:0;
+  r+=s.momentum_rank>=80?4:s.momentum_rank>=60?3:s.momentum_rank>=40?2:s.momentum_rank>=20?1:0;
+  d.rs=Math.min(15,r);
+  var m=0;
+  m+=s.vix<16?4:s.vix<20?3:s.vix<25?1:0;
+  m+=s.pmi>55?3:s.pmi>52?2:s.pmi>50?1:0;
+  m+=s.fed==='cut'?2:s.fed==='hold'?1:0;
+  m+=s.yield_curve==='normal'?1:0;
+  d.macro=Math.min(10,m);
+  d.sentiment=Math.min(5,Math.round(s.ns/10*5));
+  d.total=d.tech+d.chip+d.fund+d.rs+d.macro+d.sentiment;
+  var e=getEI(s.earnings);
+  if(e&&e.days<=14&&e.days>=0&&e.boost>0)d.total=Math.min(100,d.total+5);
+  return d;
+}
+
+
+// 最強因子共振評分（額外加分）
+function factorResonance(s){
+  var score=calcScore(s);
+  var factors=[];
+  var bonus=0;
+  // Factor 1: 動能共振（股價突破+量能放大）★★★
+  if(s.ma==='bull_strong'&&s.obv==='strong_up'){bonus+=8;factors.push({name:'動能共振',match:true,desc:'均線多頭+量能強增',win:'+8%',stars:3});}
+  else factors.push({name:'動能共振',match:false,desc:'未達條件',win:'',stars:3});
+  // Factor 2: 籌碼共識（外資投信同步買超）★★★
+  if(s.fd>=3&&s.td>=3){bonus+=8;factors.push({name:'法人共識',match:true,desc:'外資+投信同步買超'+Math.min(s.fd,s.td)+'日',win:'+8%',stars:3});}
+  else factors.push({name:'法人共識',match:false,desc:'法人未同步',win:'',stars:3});
+  // Factor 3: 籌碼乾淨（低融資高融券）★★
+  if(s.margin<22&&s.shorts>12){bonus+=6;factors.push({name:'籌碼乾淨',match:true,desc:'低融資'+s.margin+'%·融券'+s.shorts+'%',win:'+6%',stars:2});}
+  else factors.push({name:'籌碼乾淨',match:false,desc:'融資'+s.margin+'%',win:'',stars:2});
+  // Factor 4: MACD+RSI黃金區（最佳進場區間）★★★
+  if(s.macd>5&&s.rsi>=50&&s.rsi<=65){bonus+=7;factors.push({name:'技術黃金區',match:true,desc:'MACD多頭+RSI健康區'+s.rsi,win:'+7%',stars:3});}
+  else factors.push({name:'技術黃金區',match:false,desc:'MACD '+s.macd.toFixed(1)+' RSI '+s.rsi,win:'',stars:3});
+  // Factor 5: 法說前效應（法說前2週+預期優於預期）★★
+  var e=getEI(s.earnings);
+  if(e&&e.days<=14&&e.days>=0&&e.boost>0){bonus+=6;factors.push({name:'法說前效應',match:true,desc:'法說'+e.days+'天後·預計優於預期',win:'+6%',stars:2});}
+  else factors.push({name:'法說前效應',match:false,desc:e?'法說'+e.days+'天後':'無近期法說',win:'',stars:2});
+  // Factor 6: 大盤偏多+低恐慌（市場環境）★★
+  if(s.vix<20&&s.pmi>51){bonus+=5;factors.push({name:'市場環境佳',match:true,desc:'VIX '+s.vix+'低恐慌·PMI '+s.pmi,win:'+5%',stars:2});}
+  else factors.push({name:'市場環境佳',match:false,desc:'VIX '+s.vix,win:'',stars:2});
+
+  var matchCount=factors.filter(function(f){return f.match;}).length;
+  var resonanceScore=Math.min(100,score+bonus);
+  var winRate=matchCount>=5?76:matchCount>=4?70:matchCount>=3?65:matchCount>=2?58:52;
+
+  return{score:resonanceScore,raw:score,bonus:bonus,matchCount:matchCount,factors:factors,winRate:winRate};
+}
+
+
+// ══════════════════════════════════════════════════════════
+// 1. 相對強弱 RS (Relative Strength vs Index)
+// ══════════════════════════════════════════════════════════
+function calcRS(s, mktChange) {
+  // mktChange = 大盤當日漲跌%
+  var diff = s.change - mktChange;
+  var rs = 50 + diff * 8; // 超越大盤越多分數越高
+  // 額外：均線排列加成
+  if (s.ma === 'bull_strong') rs += 12;
+  else if (s.ma === 'bull') rs += 6;
+  else if (s.ma === 'bear') rs -= 10;
+  // 外資加成
+  if (s.fd >= 5) rs += 10;
+  else if (s.fd >= 3) rs += 6;
+  else if (s.fd < -3) rs -= 8;
+  return Math.min(99, Math.max(1, Math.round(rs)));
+}
+
+function rsGrade(rs) {
+  if (rs >= 80) return { label:'A+', color:'#065f46', bg:'#ecfdf5' };
+  if (rs >= 65) return { label:'A',  color:'#16a34a', bg:'#f0fdf4' };
+  if (rs >= 50) return { label:'B',  color:'#d97706', bg:'#fffbeb' };
+  if (rs >= 35) return { label:'C',  color:'#dc2626', bg:'#fff1f2' };
+  return             { label:'D',  color:'#7f1d1d', bg:'#fef2f2' };
+}
+
+// ══════════════════════════════════════════════════════════
+// 2. 產業輪動濾網
+// ══════════════════════════════════════════════════════════
+var SECTOR_STRENGTH = {
+  // 台股產業強弱（定期更新，1=最強，5=最弱）
+  '半導體':    { rank:1, flow:'流入', mom:'+8.2%', color:'#065f46' },
+  'AI伺服器':  { rank:1, flow:'流入', mom:'+12.1%', color:'#065f46' },
+  'GPU伺服器': { rank:1, flow:'流入', mom:'+11.4%', color:'#065f46' },
+  '雲端伺服器':{ rank:1, flow:'流入', mom:'+9.8%', color:'#065f46' },
+  '電源管理':  { rank:2, flow:'流入', mom:'+5.3%', color:'#16a34a' },
+  '網通IC':    { rank:2, flow:'流入', mom:'+6.1%', color:'#16a34a' },
+  '驅動IC':    { rank:2, flow:'流入', mom:'+4.2%', color:'#16a34a' },
+  '晶圓代工':  { rank:2, flow:'流入', mom:'+3.8%', color:'#16a34a' },
+  '封測':      { rank:2, flow:'流入', mom:'+3.1%', color:'#16a34a' },
+  'AI PC':     { rank:2, flow:'流入', mom:'+4.5%', color:'#16a34a' },
+  'PC/NB':     { rank:3, flow:'持平', mom:'+1.2%', color:'#d97706' },
+  '代工':      { rank:3, flow:'持平', mom:'+0.8%', color:'#d97706' },
+  '工業電腦':  { rank:3, flow:'持平', mom:'+2.1%', color:'#d97706' },
+  '電信':      { rank:4, flow:'流出', mom:'-0.5%', color:'#dc2626' },
+  '金融':      { rank:3, flow:'持平', mom:'+1.5%', color:'#d97706' },
+  'NOR Flash': { rank:3, flow:'持平', mom:'+2.3%', color:'#d97706' },
+  '電子製造':  { rank:4, flow:'流出', mom:'-1.2%', color:'#dc2626' },
+  'DRAM':      { rank:5, flow:'流出', mom:'-4.8%', color:'#7f1d1d' },
+  // 美股
+  'AI晶片':    { rank:1, flow:'流入', mom:'+14.2%', color:'#065f46' },
+  '社媒/AI':   { rank:1, flow:'流入', mom:'+11.8%', color:'#065f46' },
+  '雲端/AI':   { rank:1, flow:'流入', mom:'+9.4%', color:'#065f46' },
+  '雲端/電商': { rank:1, flow:'流入', mom:'+8.7%', color:'#065f46' },
+  '搜尋/AI':   { rank:2, flow:'流入', mom:'+7.2%', color:'#16a34a' },
+  'CPU/GPU':   { rank:2, flow:'流入', mom:'+6.8%', color:'#16a34a' },
+  'AI企業軟體':{ rank:2, flow:'流入', mom:'+8.1%', color:'#16a34a' },
+  '雲端資料庫':{ rank:2, flow:'流入', mom:'+5.9%', color:'#16a34a' },
+  'AI CRM':    { rank:2, flow:'流入', mom:'+6.3%', color:'#16a34a' },
+  'AI網路':    { rank:2, flow:'流入', mom:'+7.0%', color:'#16a34a' },
+  '雲端數據':  { rank:3, flow:'持平', mom:'+3.1%', color:'#d97706' },
+  '半導體代工':{ rank:1, flow:'流入', mom:'+9.2%', color:'#065f46' },
+  'AI晶片/網路':{ rank:1, flow:'流入', mom:'+11.1%', color:'#065f46' },
+  '共乘/自駕': { rank:2, flow:'流入', mom:'+4.8%', color:'#16a34a' },
+  '串流音樂':  { rank:3, flow:'持平', mom:'+2.4%', color:'#d97706' },
+  '電動車':    { rank:5, flow:'流出', mom:'-6.2%', color:'#7f1d1d' },
+  '消費科技':  { rank:4, flow:'流出', mom:'-2.1%', color:'#dc2626' },
+  'CPU':       { rank:5, flow:'流出', mom:'-8.4%', color:'#7f1d1d' },
+  '消費品牌':  { rank:4, flow:'流出', mom:'-3.2%', color:'#dc2626' },
+};
+
+function getSectorStrength(sector) {
+  return SECTOR_STRENGTH[sector] || { rank:3, flow:'持平', mom:'0%', color:'#d97706' };
+}
+
+function sectorBonus(s) {
+  var ss = getSectorStrength(s.sector);
+  // 強勢產業加分，弱勢扣分
+  if (ss.rank === 1) return +8;
+  if (ss.rank === 2) return +4;
+  if (ss.rank === 3) return 0;
+  if (ss.rank === 4) return -5;
+  return -10;
+}
+
+// ══════════════════════════════════════════════════════════
+// 3. 財報加速因子 (EPS / 營收加速)
+// ══════════════════════════════════════════════════════════
+var FUNDAMENTAL = {
+  // symbol: { epsGrowth:%, revGrowth:%, epsAccel:bool, marginTrend:'up'/'flat'/'down', consecutive:n }
+  '2330': { epsG:45, revG:38, accel:true,  margin:'up',   consec:6 },
+  '2454': { epsG:22, revG:18, accel:true,  margin:'up',   consec:4 },
+  '2382': { epsG:55, revG:48, accel:true,  margin:'up',   consec:5 },
+  '6669': { epsG:62, revG:58, accel:true,  margin:'up',   consec:5 },
+  '2308': { epsG:18, revG:15, accel:true,  margin:'up',   consec:3 },
+  '2376': { epsG:41, revG:35, accel:true,  margin:'up',   consec:4 },
+  '3034': { epsG:25, revG:22, accel:true,  margin:'up',   consec:3 },
+  '2379': { epsG:28, revG:24, accel:true,  margin:'up',   consec:4 },
+  '2303': { epsG:12, revG:10, accel:false, margin:'flat', consec:2 },
+  '3711': { epsG:20, revG:16, accel:true,  margin:'up',   consec:3 },
+  '2395': { epsG:15, revG:12, accel:false, margin:'flat', consec:2 },
+  '2357': { epsG:18, revG:14, accel:true,  margin:'up',   consec:2 },
+  '4938': { epsG:14, revG:11, accel:false, margin:'flat', consec:2 },
+  '2353': { epsG:10, revG:8,  accel:false, margin:'flat', consec:1 },
+  '2337': { epsG:8,  revG:6,  accel:false, margin:'flat', consec:1 },
+  '2317': { epsG:-5, revG:-3, accel:false, margin:'down', consec:0 },
+  '2408': { epsG:-25,revG:-18,accel:false, margin:'down', consec:0 },
+  '2412': { epsG:3,  revG:2,  accel:false, margin:'flat', consec:2 },
+  '2881': { epsG:28, revG:20, accel:true,  margin:'up',   consec:3 },
+  '2891': { epsG:18, revG:14, accel:true,  margin:'up',   consec:2 },
+  'NVDA': { epsG:120,revG:95, accel:true,  margin:'up',   consec:8 },
+  'META': { epsG:58, revG:27, accel:true,  margin:'up',   consec:6 },
+  'MSFT': { epsG:22, revG:17, accel:true,  margin:'up',   consec:5 },
+  'AMZN': { epsG:48, revG:12, accel:true,  margin:'up',   consec:5 },
+  'GOOGL':{ epsG:32, revG:14, accel:true,  margin:'up',   consec:4 },
+  'AMD':  { epsG:38, revG:28, accel:true,  margin:'up',   consec:4 },
+  'PLTR': { epsG:42, revG:35, accel:true,  margin:'up',   consec:5 },
+  'ORCL': { epsG:15, revG:12, accel:true,  margin:'up',   consec:3 },
+  'CRM':  { epsG:28, revG:22, accel:true,  margin:'up',   consec:4 },
+  'ANET': { epsG:35, revG:28, accel:true,  margin:'up',   consec:5 },
+  'NOW':  { epsG:30, revG:22, accel:true,  margin:'up',   consec:4 },
+  'SNOW': { epsG:18, revG:25, accel:true,  margin:'up',   consec:3 },
+  'TSM':  { epsG:45, revG:38, accel:true,  margin:'up',   consec:6 },
+  'AVGO': { epsG:52, revG:44, accel:true,  margin:'up',   consec:6 },
+  'UBER': { epsG:22, revG:18, accel:true,  margin:'up',   consec:3 },
+  'SPOT': { epsG:35, revG:20, accel:true,  margin:'up',   consec:4 },
+  'TSLA': { epsG:-18,revG:-8, accel:false, margin:'down', consec:0 },
+  'AAPL': { epsG:5,  revG:3,  accel:false, margin:'flat', consec:1 },
+  'INTC': { epsG:-45,revG:-12,accel:false, margin:'down', consec:0 },
+  'NKE':  { epsG:-8, revG:-5, accel:false, margin:'down', consec:0 },
+};
+
+function getFundamental(sym) {
+  return FUNDAMENTAL[sym] || { epsG:0, revG:0, accel:false, margin:'flat', consec:0 };
+}
+
+function fundamentalScore(sym) {
+  var f = getFundamental(sym);
+  var sc = 0;
+  // EPS成長加分
+  if (f.epsG >= 50) sc += 10;
+  else if (f.epsG >= 25) sc += 7;
+  else if (f.epsG >= 10) sc += 4;
+  else if (f.epsG >= 0)  sc += 1;
+  else sc -= 5;
+  // 營收成長
+  if (f.revG >= 30) sc += 6;
+  else if (f.revG >= 15) sc += 4;
+  else if (f.revG >= 5)  sc += 2;
+  else if (f.revG < 0)   sc -= 3;
+  // 加速趨勢（最重要）
+  if (f.accel) sc += 8;
+  // 毛利率趨勢
+  if (f.margin === 'up')   sc += 4;
+  else if (f.margin === 'down') sc -= 3;
+  // 連續成長季數
+  sc += Math.min(f.consec, 6);
+  return Math.min(34, Math.max(-10, sc));
+}
+
+// ══════════════════════════════════════════════════════════
+// 4. 籌碼佔比分析（買超張數佔成交量比）
+// ══════════════════════════════════════════════════════════
+var CHIP_DATA = {
+  // symbol: { buyRatio:%, sellRatio:%, instTotal:%, marginSpeed:'fast'/'slow'/'neg', shortCover:bool }
+  '2330': { buyRatio:18, sellRatio:2,  instTotal:42, marginSpeed:'slow', shortCover:false },
+  '2454': { buyRatio:12, sellRatio:3,  instTotal:28, marginSpeed:'slow', shortCover:false },
+  '2382': { buyRatio:15, sellRatio:2,  instTotal:35, marginSpeed:'slow', shortCover:true  },
+  '6669': { buyRatio:14, sellRatio:1,  instTotal:38, marginSpeed:'slow', shortCover:true  },
+  '2308': { buyRatio:9,  sellRatio:3,  instTotal:22, marginSpeed:'slow', shortCover:false },
+  '2376': { buyRatio:11, sellRatio:2,  instTotal:28, marginSpeed:'slow', shortCover:true  },
+  '3034': { buyRatio:10, sellRatio:3,  instTotal:24, marginSpeed:'slow', shortCover:false },
+  '2379': { buyRatio:9,  sellRatio:3,  instTotal:21, marginSpeed:'slow', shortCover:false },
+  '2303': { buyRatio:7,  sellRatio:4,  instTotal:18, marginSpeed:'slow', shortCover:false },
+  '3711': { buyRatio:8,  sellRatio:3,  instTotal:20, marginSpeed:'slow', shortCover:false },
+  '2395': { buyRatio:7,  sellRatio:4,  instTotal:16, marginSpeed:'slow', shortCover:false },
+  '2357': { buyRatio:7,  sellRatio:4,  instTotal:18, marginSpeed:'slow', shortCover:false },
+  '4938': { buyRatio:8,  sellRatio:3,  instTotal:20, marginSpeed:'slow', shortCover:false },
+  '2353': { buyRatio:5,  sellRatio:4,  instTotal:14, marginSpeed:'slow', shortCover:false },
+  '2337': { buyRatio:5,  sellRatio:5,  instTotal:12, marginSpeed:'slow', shortCover:false },
+  '2317': { buyRatio:2,  sellRatio:12, instTotal:8,  marginSpeed:'fast', shortCover:false },
+  '2408': { buyRatio:1,  sellRatio:18, instTotal:5,  marginSpeed:'fast', shortCover:false },
+  '2412': { buyRatio:3,  sellRatio:6,  instTotal:10, marginSpeed:'neg',  shortCover:false },
+  '2881': { buyRatio:6,  sellRatio:3,  instTotal:18, marginSpeed:'slow', shortCover:false },
+  '2891': { buyRatio:5,  sellRatio:4,  instTotal:15, marginSpeed:'slow', shortCover:false },
+  'NVDA': { buyRatio:22, sellRatio:3,  instTotal:68, marginSpeed:'slow', shortCover:true  },
+  'META': { buyRatio:18, sellRatio:3,  instTotal:72, marginSpeed:'slow', shortCover:true  },
+  'MSFT': { buyRatio:15, sellRatio:2,  instTotal:75, marginSpeed:'slow', shortCover:false },
+  'AMZN': { buyRatio:14, sellRatio:3,  instTotal:62, marginSpeed:'slow', shortCover:false },
+  'GOOGL':{ buyRatio:13, sellRatio:3,  instTotal:60, marginSpeed:'slow', shortCover:false },
+  'AMD':  { buyRatio:12, sellRatio:4,  instTotal:52, marginSpeed:'slow', shortCover:true  },
+  'PLTR': { buyRatio:10, sellRatio:3,  instTotal:45, marginSpeed:'slow', shortCover:true  },
+  'ORCL': { buyRatio:9,  sellRatio:3,  instTotal:48, marginSpeed:'slow', shortCover:false },
+  'CRM':  { buyRatio:9,  sellRatio:3,  instTotal:44, marginSpeed:'slow', shortCover:false },
+  'ANET': { buyRatio:10, sellRatio:2,  instTotal:50, marginSpeed:'slow', shortCover:false },
+  'NOW':  { buyRatio:11, sellRatio:2,  instTotal:55, marginSpeed:'slow', shortCover:false },
+  'SNOW': { buyRatio:8,  sellRatio:4,  instTotal:42, marginSpeed:'slow', shortCover:true  },
+  'TSM':  { buyRatio:16, sellRatio:2,  instTotal:65, marginSpeed:'slow', shortCover:false },
+  'AVGO': { buyRatio:14, sellRatio:2,  instTotal:62, marginSpeed:'slow', shortCover:true  },
+  'UBER': { buyRatio:9,  sellRatio:4,  instTotal:48, marginSpeed:'slow', shortCover:false },
+  'SPOT': { buyRatio:8,  sellRatio:4,  instTotal:40, marginSpeed:'slow', shortCover:true  },
+  'TSLA': { buyRatio:2,  sellRatio:20, instTotal:35, marginSpeed:'fast', shortCover:false },
+  'AAPL': { buyRatio:4,  sellRatio:10, instTotal:58, marginSpeed:'fast', shortCover:false },
+  'INTC': { buyRatio:1,  sellRatio:22, instTotal:30, marginSpeed:'fast', shortCover:false },
+  'NKE':  { buyRatio:3,  sellRatio:12, instTotal:38, marginSpeed:'fast', shortCover:false },
+};
+
+function getChipData(sym) {
+  return CHIP_DATA[sym] || { buyRatio:5, sellRatio:5, instTotal:20, marginSpeed:'slow', shortCover:false };
+}
+
+function chipScore(sym) {
+  var c = getChipData(sym);
+  var sc = 0;
+  // 買超佔比（越高越有力）
+  if (c.buyRatio >= 15) sc += 10;
+  else if (c.buyRatio >= 10) sc += 7;
+  else if (c.buyRatio >= 5)  sc += 4;
+  else sc += 1;
+  // 賣超佔比（越高越危險）
+  if (c.sellRatio >= 15) sc -= 8;
+  else if (c.sellRatio >= 8) sc -= 4;
+  else if (c.sellRatio <= 3) sc += 4;
+  // 機構持股比例
+  if (c.instTotal >= 60) sc += 6;
+  else if (c.instTotal >= 40) sc += 4;
+  else if (c.instTotal >= 20) sc += 2;
+  // 融資增速（急速增加是警訊）
+  if (c.marginSpeed === 'fast') sc -= 5;
+  else if (c.marginSpeed === 'neg') sc -= 2;
+  else sc += 2;
+  // 融券回補潛力
+  if (c.shortCover) sc += 5;
+  return Math.min(27, Math.max(-13, sc));
+}
+
+// ══════════════════════════════════════════════════════════
+// 綜合增強評分（整合所有新因子）
+// ══════════════════════════════════════════════════════════
+var MKT_CHANGE = { tw: 1.2, us: 0.8 }; // 大盤當日漲跌幅
+
+function enhancedScore(s) {
+  var base = calcScore(s);
+  var mkt = /^\d/.test(s.symbol) ? 'tw' : 'us';
+  var rs = calcRS(s, MKT_CHANGE[mkt]);
+  var secB = sectorBonus(s);
+  var funB = fundamentalScore(s.symbol);
+  var chipB = chipScore(s.symbol);
+  var ei = getEI(s.earnings);
+  var eiB = ei ? ei.boost : 0;
+  var total = base + secB + funB + chipB + eiB;
+  return {
+    total: Math.min(100, Math.max(0, Math.round(total))),
+    base: base,
+    rs: rs,
+    rsGrade: rsGrade(rs),
+    sector: getSectorStrength(s.sector),
+    secBonus: secB,
+    fund: getFundamental(s.symbol),
+    fundScore: funB,
+    chip: getChipData(s.symbol),
+    chipScore: chipB,
+    eiBonus: eiB,
+    breakdown: [
+      { name:'技術指標', val:base,  max:100, color:'#3b82f6' },
+      { name:'產業輪動', val:secB,  max:8,   color: secB>=0?'#22c55e':'#ef4444' },
+      { name:'財報加速', val:funB,  max:34,  color: funB>=0?'#22c55e':'#ef4444' },
+      { name:'籌碼佔比', val:chipB, max:27,  color: chipB>=0?'#22c55e':'#ef4444' },
+      { name:'法說效應', val:eiB,   max:8,   color: eiB>=0?'#22c55e':'#ef4444' },
+    ]
+  };
+}
+
+// 更新 factorResonance 加入新因子
+function factorResonance(s) {
+  var score = calcScore(s);
+  var enh = enhancedScore(s);
+  var factors = [];
+  var bonus = 0;
+
+  // Factor 1: 動能共振
+  if(s.ma==='bull_strong'&&s.obv==='strong_up'){bonus+=8;factors.push({name:'動能共振',match:true,desc:'均線多頭+量能強增',win:'+8%',stars:3});}
+  else factors.push({name:'動能共振',match:false,desc:'未達條件',win:'',stars:3});
+  // Factor 2: 法人共識
+  if(s.fd>=3&&s.td>=3){bonus+=8;factors.push({name:'法人共識',match:true,desc:'外資+投信同步買超'+Math.min(s.fd,s.td)+'日',win:'+8%',stars:3});}
+  else factors.push({name:'法人共識',match:false,desc:'法人未同步',win:'',stars:3});
+  // Factor 3: 籌碼乾淨
+  if(s.margin<22&&s.shorts>12){bonus+=6;factors.push({name:'籌碼乾淨',match:true,desc:'低融資'+s.margin+'%·融券'+s.shorts+'%',win:'+6%',stars:2});}
+  else factors.push({name:'籌碼乾淨',match:false,desc:'融資'+s.margin+'%',win:'',stars:2});
+  // Factor 4: 技術黃金區
+  if(s.macd>5&&s.rsi>=50&&s.rsi<=65){bonus+=7;factors.push({name:'技術黃金區',match:true,desc:'MACD多頭+RSI健康區'+s.rsi,win:'+7%',stars:3});}
+  else factors.push({name:'技術黃金區',match:false,desc:'MACD '+s.macd.toFixed(1)+' RSI '+s.rsi,win:'',stars:3});
+  // Factor 5: 法說前效應
+  var ei=getEI(s.earnings);
+  if(ei&&ei.days<=14&&ei.days>=0&&ei.boost>0){bonus+=6;factors.push({name:'法說前效應',match:true,desc:'法說'+ei.days+'天後·預計優異',win:'+6%',stars:2});}
+  else factors.push({name:'法說前效應',match:false,desc:ei?'法說'+ei.days+'天後':'無近期法說',win:'',stars:2});
+  // Factor 6: 市場環境
+  if(s.vix<20&&s.pmi>51){bonus+=5;factors.push({name:'市場環境佳',match:true,desc:'VIX '+s.vix+' PMI '+s.pmi,win:'+5%',stars:2});}
+  else factors.push({name:'市場環境佳',match:false,desc:'VIX '+s.vix,win:'',stars:2});
+  // Factor 7: RS相對強弱 (NEW)
+  if(enh.rs>=70){bonus+=7;factors.push({name:'RS相對強弱',match:true,desc:'RS評級 '+enh.rsGrade.label+' ('+enh.rs+')',win:'+7%',stars:3});}
+  else factors.push({name:'RS相對強弱',match:false,desc:'RS評級 '+enh.rsGrade.label+' ('+enh.rs+')',win:'',stars:3});
+  // Factor 8: 強勢產業 (NEW)
+  if(enh.sector.rank<=2){bonus+=6;factors.push({name:'強勢產業',match:true,desc:s.sector+' 資金'+enh.sector.flow+' '+enh.sector.mom,win:'+6%',stars:2});}
+  else factors.push({name:'強勢產業',match:false,desc:s.sector+' '+enh.sector.flow+' '+enh.sector.mom,win:'',stars:2});
+  // Factor 9: 財報加速 (NEW)
+  var f=getFundamental(s.symbol);
+  if(f.accel&&f.epsG>=20){bonus+=7;factors.push({name:'財報加速',match:true,desc:'EPS+'+f.epsG+'% 連'+f.consec+'季成長',win:'+7%',stars:3});}
+  else factors.push({name:'財報加速',match:false,desc:'EPS+'+f.epsG+'% '+(!f.accel?'未加速':''),win:'',stars:3});
+  // Factor 10: 籌碼佔比 (NEW)
+  var cd=getChipData(s.symbol);
+  if(cd.buyRatio>=10&&cd.sellRatio<=4){bonus+=6;factors.push({name:'籌碼佔比強',match:true,desc:'買超佔比'+cd.buyRatio+'% 機構'+cd.instTotal+'%',win:'+6%',stars:2});}
+  else factors.push({name:'籌碼佔比強',match:false,desc:'買超佔比'+cd.buyRatio+'%',win:'',stars:2});
+
+  var matchCount=factors.filter(function(f){return f.match;}).length;
+  var resonanceScore=Math.min(100,enh.total+bonus);
+  var winRate=matchCount>=8?82:matchCount>=7?78:matchCount>=6?74:matchCount>=5?70:matchCount>=4?65:matchCount>=3?58:52;
+
+  return{score:resonanceScore,raw:score,enhanced:enh,bonus:bonus,matchCount:matchCount,factors:factors,winRate:winRate,totalFactors:10};
+}
+
+function getGrade(sc){
+  if(sc>=82)return{key:'strong_buy',label:'強力買入',short:'強買▲▲',color:'#065f46',bg:'#ecfdf5',border:'#34d399',dot:'#10b981',rank:5};
+  if(sc>=65)return{key:'buy',label:'建議買入',short:'買入▲',color:'#166534',bg:'#f0fdf4',border:'#86efac',dot:'#22c55e',rank:4};
+  if(sc>=48)return{key:'watch',label:'觀察等待',short:'觀察◆',color:'#92400e',bg:'#fffbeb',border:'#fcd34d',dot:'#f59e0b',rank:3};
+  if(sc>=30)return{key:'sell',label:'建議減碼',short:'減碼▼',color:'#991b1b',bg:'#fff1f2',border:'#fca5a5',dot:'#ef4444',rank:2};
+  return{key:'strong_sell',label:'強力賣出',short:'強賣▼▼',color:'#7f1d1d',bg:'#fef2f2',border:'#f87171',dot:'#dc2626',rank:1};
+}
+function getEI(e){
+  if(!e)return null;
+  var days=Math.round((new Date(e.date)-new Date())/86400000);
+  if(days<0)return null;
+  return{days:days,label:e.expect==='beat'?'預計優於預期':e.expect==='miss'?'預計低於預期':'結果中性',color:e.expect==='beat'?'#16a34a':e.expect==='miss'?'#dc2626':'#d97706',icon:e.expect==='beat'?'📈':e.expect==='miss'?'📉':'➖',boost:e.expect==='beat'?8:e.expect==='miss'?-10:0};
+}
+
+// ══════════════════════════════════════
+// BACKTEST ENGINE
+// ══════════════════════════════════════
+function avg(a){return a.reduce(function(x,y){return x+y;},0)/a.length;}
+function ema(d,p){var k=2/(p+1),e=d[0];for(var i=1;i<d.length;i++)e=d[i]*k+e*(1-k);return e;}
+function rsi14(c){var g=0,l=0,n=Math.min(14,c.length-1);for(var i=c.length-n;i<c.length;i++){var d=c[i]-c[i-1];if(d>0)g+=d;else l-=d;}if(l===0)return 100;return parseFloat((100-100/(1+g/l)).toFixed(1));}
+
+function runBacktest(s,hist){
+  if(!hist||hist.length<60)return null;
+  var matches=[];
+  for(var i=20;i<hist.length-20;i++){
+    var sl=hist.slice(i-20,i),cl=sl.map(function(d){return d.c;});
+    var m=ema(cl,12)-ema(cl,26),r=rsi14(cl),cur=cl[cl.length-1];
+    var sma5=avg(cl.slice(-5)),sma20=avg(cl);
+    var vl=sl.map(function(d){return d.v||1;});
+    var vtUp=avg(vl.slice(-3))>avg(vl.slice(-10));
+    var maUp=cur>sma5&&sma5>sma20,maDn=cur<sma5&&sma5<sma20;
+    var sc=0;
+    if((s.macd>0&&m>0)||(s.macd<0&&m<0))sc++;
+    var rz=s.rsi>70?'h':s.rsi<30?'l':'m',hrz=r>70?'h':r<30?'l':'m';
+    if(rz===hrz)sc++;
+    var cm=s.ma.indexOf('bull')>=0?'b':s.ma==='bear'?'d':'f',hm=maUp?'b':maDn?'d':'f';
+    if(cm===hm)sc++;
+    var cv=s.obv==='strong_up'||s.obv==='up',hv=vtUp;
+    if(cv===hv)sc++;
+    var mom=(cur-cl[0])/cl[0],cmom=s.change>1?'u':s.change<-1?'d':'f',hmom=mom>0.02?'u':mom<-0.02?'d':'f';
+    if(cmom===hmom)sc++;
+    if(sc>=3){
+      var f5=hist[i+4]?(hist[i+4].c-cur)/cur*100:null;
+      var f10=hist[i+9]?(hist[i+9].c-cur)/cur*100:null;
+      var f20=hist[i+19]?(hist[i+19].c-cur)/cur*100:null;
+      matches.push({date:hist[i].d,sim:sc/5,f5:f5,f10:f10,f20:f20,macd:m,rsi:r});
+    }
+  }
+  if(matches.length<3)return null;
+  function st(arr,k){
+    var v=arr.map(function(m){return m[k];}).filter(function(x){return x!==null;});
+    if(!v.length)return null;
+    return{wr:Math.round(v.filter(function(x){return x>0;}).length/v.length*100),avg:parseFloat((v.reduce(function(a,b){return a+b;},0)/v.length).toFixed(2)),max:parseFloat(Math.max.apply(null,v).toFixed(2)),min:parseFloat(Math.min.apply(null,v).toFixed(2)),n:v.length};
+  }
+  return{n:matches.length,s5:st(matches,'f5'),s10:st(matches,'f10'),s20:st(matches,'f20'),top:matches.sort(function(a,b){return b.sim-a.sim;}).slice(0,3),avgSim:Math.round(matches.reduce(function(a,m){return a+m.sim;},0)/matches.length*100)};
+}
+function mkPred(s,bt){
+  var e=getEI(s.earnings);
+  if(!bt){
+    var w=50;
+    if(s.macd>5)w+=8;if(s.rsi>=50&&s.rsi<=65)w+=6;if(s.fd>=3)w+=8;if(s.td>=3)w+=5;if(s.ma==='bull_strong')w+=5;if(e&&e.boost>0)w+=5;
+    w=Math.min(83,Math.max(18,w));
+    var d=w>60?'up':w<40?'down':'neutral';
+    return{dir:d,conf:w,e5:d==='up'?'+2~4%':d==='down'?'-2~4%':'±1%',e10:d==='up'?'+4~8%':d==='down'?'-4~8%':'±2%',e20:d==='up'?'+6~12%':d==='down'?'-6~12%':'±3%',w5:w,w10:w-3,w20:w-6,src:'model'};
+  }
+  var s10=bt.s10||bt.s5;if(!s10)return null;
+  var d=s10.avg>1?'up':s10.avg<-1?'down':'neutral';
+  return{dir:d,conf:s10.wr,e5:bt.s5?(bt.s5.avg>0?'+':'')+bt.s5.avg+'%':'N/A',e10:bt.s10?(bt.s10.avg>0?'+':'')+bt.s10.avg+'%':'N/A',e20:bt.s20?(bt.s20.avg>0?'+':'')+bt.s20.avg+'%':'N/A',w5:bt.s5?bt.s5.wr:s10.wr,w10:bt.s10?bt.s10.wr:s10.wr,w20:bt.s20?bt.s20.wr:s10.wr,src:'bt',n:bt.n,sim:bt.avgSim};
+}
+
+// ══════════════════════════════════════
+// DATABASE — 台股20支 + 美股20支
+// ══════════════════════════════════════
+var DB={
+tw:[
+  {symbol:'2330',name:'台積電',yS:'2330.TW',price:0,change:0,sector:'半導體',target:0,support:0,resistance:0,horizon:'中長線',macd:12.4,rsi:62,kd_k:72,kd_d:65,boll:0.68,obv:'strong_up',ma:'bull_strong',fd:8,td:5,margin:18,shorts:8,vix:18.2,pmi:53.1,fed:'hold',ns:9,reasons:['CoWoS滿載AI晶片需求爆發','外資投信連8日同步買超','MACD+KD+布林三指標共振','融資低籌碼極乾淨'],news:'台積電3奈米良率達80%，NVIDIA下單2025全年產能',src:'經濟日報',risk:'地緣政治風險',earnings:{date:'2025-07-17',expect:'beat',preview:'Q2 EPS預估年增45%'}},
+  {symbol:'2454',name:'聯發科',yS:'2454.TW',price:0,change:0,sector:'半導體',target:0,support:0,resistance:0,horizon:'中線',macd:8.7,rsi:58,kd_k:65,kd_d:58,boll:0.62,obv:'up',ma:'bull_strong',fd:5,td:4,margin:22,shorts:6,vix:18.2,pmi:53.1,fed:'hold',ns:8,reasons:['天璣9400旗艦機採用率超預期','投信連4日買超','KD未超買仍有空間'],news:'聯發科Q2法說上修財測毛利率優於預期',src:'MoneyDJ',risk:'中國手機需求波動',earnings:{date:'2025-08-05',expect:'beat',preview:'AI手機滲透率提升'}},
+  {symbol:'2382',name:'廣達',yS:'2382.TW',price:0,change:0,sector:'AI伺服器',target:0,support:0,resistance:0,horizon:'中線',macd:9.2,rsi:61,kd_k:70,kd_d:62,boll:0.72,obv:'strong_up',ma:'bull_strong',fd:6,td:6,margin:15,shorts:12,vix:18.2,pmi:53.1,fed:'hold',ns:8,reasons:['外資投信連6日雙買超','融券12%軋空動能強','GB200代工出貨年增3成'],news:'廣達AI伺服器Q2出貨較Q1成長3成',src:'鉅亨網',risk:'供應鏈零件短缺',earnings:{date:'2025-07-28',expect:'beat',preview:'AI伺服器佔比超5成'}},
+  {symbol:'6669',name:'緯穎',yS:'6669.TW',price:0,change:0,sector:'雲端伺服器',target:0,support:0,resistance:0,horizon:'中線',macd:14.1,rsi:65,kd_k:75,kd_d:67,boll:0.78,obv:'strong_up',ma:'bull_strong',fd:5,td:5,margin:12,shorts:18,vix:18.2,pmi:53.1,fed:'hold',ns:9,reasons:['外資投信連5日雙買超','融券18%軋空強','突破歷史新高量創高'],news:'緯穎取得微軟Azure新一代AI伺服器大單',src:'電子時報',risk:'客戶集中度高',earnings:{date:'2025-08-12',expect:'beat',preview:'AI伺服器訂單爆滿'}},
+  {symbol:'2308',name:'台達電',yS:'2308.TW',price:0,change:0,sector:'電源管理',target:0,support:0,resistance:0,horizon:'長線',macd:3.2,rsi:55,kd_k:60,kd_d:54,boll:0.55,obv:'up',ma:'bull',fd:4,td:3,margin:20,shorts:7,vix:18.2,pmi:53.1,fed:'hold',ns:7,reasons:['AI資料中心PSU出貨倍增','外資連4日買超','均線多頭排列穩健'],news:'台達電取得NVIDIA GB200電源模組大單',src:'工商時報',risk:'原物料成本上升',earnings:{date:'2025-07-24',expect:'beat',preview:'伺服器PSU ASP提升'}},
+  {symbol:'2376',name:'技嘉',yS:'2376.TW',price:0,change:0,sector:'GPU伺服器',target:0,support:0,resistance:0,horizon:'中線',macd:8.9,rsi:63,kd_k:71,kd_d:62,boll:0.70,obv:'strong_up',ma:'bull_strong',fd:5,td:4,margin:16,shorts:11,vix:18.2,pmi:53.1,fed:'hold',ns:8,reasons:['GPU伺服器ODM主力出貨大增','外資投信同步加碼','放量突破壓力位'],news:'技嘉AI伺服器Q2出貨較Q1大增40%',src:'蘋果日報',risk:'GPU零件供應受限',earnings:{date:'2025-08-14',expect:'beat',preview:'GPU伺服器毛利率高'}},
+  {symbol:'3034',name:'聯詠',yS:'3034.TW',price:0,change:0,sector:'驅動IC',target:0,support:0,resistance:0,horizon:'中線',macd:6.1,rsi:57,kd_k:62,kd_d:54,boll:0.60,obv:'up',ma:'bull',fd:4,td:3,margin:19,shorts:8,vix:18.2,pmi:53.1,fed:'hold',ns:7,reasons:['OLED驅動IC需求回升','外資買超連4日','KD黃金交叉型態'],news:'聯詠OLED驅動IC出貨量Q2年增25%，三星面板訂單確認',src:'科技新報',risk:'面板景氣循環',earnings:{date:'2025-08-06',expect:'beat',preview:'OLED比重提升毛利改善'}},
+  {symbol:'2379',name:'瑞昱',yS:'2379.TW',price:0,change:0,sector:'網通IC',target:0,support:0,resistance:0,horizon:'中線',macd:7.8,rsi:59,kd_k:66,kd_d:58,boll:0.65,obv:'up',ma:'bull',fd:4,td:3,margin:18,shorts:9,vix:18.2,pmi:53.1,fed:'hold',ns:7,reasons:['10GbE晶片需求暴增','MACD柱狀持續擴大','外資大幅加碼'],news:'瑞昱10GbE晶片Q2出貨年增70%',src:'科技新報',risk:'博通競爭加劇',earnings:{date:'2025-08-07',expect:'beat',preview:'網通晶片ASP回升'}},
+  {symbol:'2303',name:'聯電',yS:'2303.TW',price:0,change:0,sector:'晶圓代工',target:0,support:0,resistance:0,horizon:'中線',macd:3.8,rsi:52,kd_k:56,kd_d:50,boll:0.53,obv:'up',ma:'bull',fd:3,td:2,margin:21,shorts:7,vix:18.2,pmi:53.1,fed:'hold',ns:6,reasons:['28nm產能利用率回升','車用晶片需求穩健','技術面均線翻揚'],news:'聯電Q2 28nm產能利用率超85%，車用訂單能見度至年底',src:'工商時報',risk:'先進製程競爭壓力',earnings:{date:'2025-07-16',expect:'beat',preview:'產能利用率改善EPS回升'}},
+  {symbol:'3711',name:'日月光',yS:'3711.TW',price:0,change:0,sector:'封測',target:0,support:0,resistance:0,horizon:'長線',macd:4.3,rsi:54,kd_k:61,kd_d:55,boll:0.58,obv:'up',ma:'bull',fd:3,td:4,margin:21,shorts:8,vix:18.2,pmi:53.1,fed:'hold',ns:7,reasons:['先進封裝需求強毛利率提升','AI封裝訂單能見度至2026','股價站回年線轉強'],news:'日月光封裝產能滿載，客戶含NVIDIA、AMD',src:'財訊',risk:'傳統封測景氣循環',earnings:{date:'2025-07-29',expect:'beat',preview:'先進封裝毛利率持續提升'}},
+  {symbol:'2395',name:'研華',yS:'2395.TW',price:0,change:0,sector:'工業電腦',target:0,support:0,resistance:0,horizon:'長線',macd:2.8,rsi:53,kd_k:57,kd_d:51,boll:0.54,obv:'up',ma:'bull',fd:3,td:2,margin:17,shorts:5,vix:18.2,pmi:53.1,fed:'hold',ns:6,reasons:['邊緣AI需求帶動工業電腦升級','歐美客戶補庫存動能','配息穩定法人長線布局'],news:'研華邊緣AI伺服器出貨Q2年增35%，製造業AI轉型加速',src:'電子時報',risk:'景氣敏感度高',earnings:{date:'2025-08-04',expect:'beat',preview:'邊緣AI佔比提升毛利改善'}},
+  {symbol:'2357',name:'華碩',yS:'2357.TW',price:0,change:0,sector:'PC/NB',target:0,support:0,resistance:0,horizon:'中線',macd:3.1,rsi:54,kd_k:58,kd_d:52,boll:0.55,obv:'up',ma:'bull',fd:3,td:2,margin:23,shorts:6,vix:18.2,pmi:53.1,fed:'hold',ns:6,reasons:['AI PC換機潮啟動','ROG電競品牌溢價強','技術面均線多頭排列'],news:'華碩AI PC出貨量Q2年增28%，ROG系列AI功能受好評',src:'DIGITIMES',risk:'傳統PC市場成熟',earnings:{date:'2025-08-05',expect:'beat',preview:'AI PC毛利率優於預期'}},
+  {symbol:'4938',name:'和碩',yS:'4938.TW',price:0,change:0,sector:'代工',target:0,support:0,resistance:0,horizon:'中線',macd:4.5,rsi:56,kd_k:62,kd_d:55,boll:0.58,obv:'up',ma:'bull',fd:4,td:3,margin:20,shorts:7,vix:18.2,pmi:53.1,fed:'hold',ns:7,reasons:['蘋果iPhone 17訂單確認','AI裝置代工比重提升','外資連4日買超'],news:'和碩獲iPhone 17關鍵組件代工，AI裝置佔比提升至30%',src:'MoneyDJ',risk:'蘋果供應鏈集中度高',earnings:{date:'2025-08-07',expect:'beat',preview:'iPhone 17拉貨帶動Q3業績'}},
+  {symbol:'2353',name:'宏碁',yS:'2353.TW',price:0,change:0,sector:'AI PC',target:0,support:0,resistance:0,horizon:'中線',macd:1.8,rsi:52,kd_k:55,kd_d:48,boll:0.50,obv:'up',ma:'bull',fd:2,td:2,margin:25,shorts:7,vix:18.2,pmi:53.1,fed:'hold',ns:6,reasons:['AI PC換機潮啟動','本益比相對低估','KD低檔黃金交叉'],news:'AI PC滲透率2025年底達30%，宏碁出貨超預期',src:'DIGITIMES',risk:'傳統PC市場萎縮',earnings:{date:'2025-08-08',expect:'beat',preview:'AI PC毛利率改善'}},
+  {symbol:'2337',name:'旺宏',yS:'2337.TW',price:0,change:0,sector:'NOR Flash',target:0,support:0,resistance:0,horizon:'中線',macd:3.1,rsi:51,kd_k:58,kd_d:50,boll:0.52,obv:'up',ma:'bull',fd:2,td:3,margin:23,shorts:9,vix:18.2,pmi:53.1,fed:'hold',ns:6,reasons:['NOR Flash車用復甦ASP回升','月線翻揚底部確立','投信連3日買超'],news:'旺宏車用NOR Flash接單滿，Q2報價漲5-8%',src:'聯合報',risk:'三星價格競爭',earnings:{date:'2025-08-13',expect:'beat',preview:'NOR Flash ASP持續回升'}},
+  {symbol:'2317',name:'鴻海',yS:'2317.TW',price:0,change:0,sector:'電子製造',target:0,support:0,resistance:0,horizon:'短線',macd:-2.1,rsi:44,kd_k:40,kd_d:45,boll:0.38,obv:'flat',ma:'flat',fd:-3,td:-2,margin:42,shorts:4,vix:18.2,pmi:53.1,fed:'hold',ns:3,reasons:['MACD死叉KD空頭交叉','外資連3日賣超','融資42%偏高'],news:'鴻海Q1 EPS低於預期，法說下修展望',src:'工商時報',risk:'轉型期業績壓力',earnings:{date:'2025-08-08',expect:'miss',preview:'電動車業務進展慢'}},
+  {symbol:'2408',name:'南亞科',yS:'2408.TW',price:0,change:0,sector:'DRAM',target:0,support:0,resistance:0,horizon:'短線',macd:-4.2,rsi:38,kd_k:28,kd_d:35,boll:0.22,obv:'down',ma:'bear',fd:-6,td:-4,margin:55,shorts:3,vix:18.2,pmi:53.1,fed:'hold',ns:1,reasons:['外資連6日大幅賣超','融資55%偏高','MACD+KD+OBV三指標空頭'],news:'DRAM現貨報價下滑，南亞科庫存去化需2季',src:'科技新報',risk:'景氣底部未確認',earnings:{date:'2025-07-25',expect:'miss',preview:'DRAM景氣低迷'}},
+  {symbol:'2412',name:'中華電',yS:'2412.TW',price:0,change:0,sector:'電信',target:0,support:0,resistance:0,horizon:'長線',macd:-1.2,rsi:48,kd_k:48,kd_d:50,boll:0.45,obv:'flat',ma:'flat',fd:-1,td:0,margin:15,shorts:3,vix:18.2,pmi:53.1,fed:'hold',ns:4,reasons:['技術面三指標中性','防禦配息股等待訊號'],news:'中華電5G用戶800萬持平預期',src:'MoneyDJ',risk:'成長動能不足',earnings:{date:'2025-07-31',expect:'neutral',preview:'業績穩定無明顯驚喜'}},
+  {symbol:'2881',name:'富邦金',yS:'2881.TW',price:0,change:0,sector:'金融',target:0,support:0,resistance:0,horizon:'長線',macd:2.1,rsi:51,kd_k:54,kd_d:49,boll:0.52,obv:'up',ma:'bull',fd:2,td:1,margin:16,shorts:4,vix:18.2,pmi:53.1,fed:'hold',ns:5,reasons:['Fed維持利率金融股受惠','壽險資產改善淨值回升','配息穩定法人長線布局'],news:'富邦金Q1獲利年增42%，壽險部位匯損縮減',src:'工商時報',risk:'利率變動風險',earnings:{date:'2025-08-14',expect:'beat',preview:'壽險改善帶動整體獲利'}},
+  {symbol:'2891',name:'中信金',yS:'2891.TW',price:0,change:0,sector:'金融',target:0,support:0,resistance:0,horizon:'長線',macd:1.8,rsi:50,kd_k:52,kd_d:48,boll:0.51,obv:'flat',ma:'bull',fd:1,td:1,margin:14,shorts:3,vix:18.2,pmi:53.1,fed:'hold',ns:5,reasons:['信貸業務穩健成長','配息率高吸引長線資金','股價接近淨值具安全邊際'],news:'中信金Q1手續費收入年增18%，財富管理業務強勁',src:'聯合報',risk:'景氣下行授信風險',earnings:{date:'2025-08-15',expect:'beat',preview:'手續費收入持續成長'}},
+],
+us:[
+  {symbol:'NVDA',name:'輝達',yS:'NVDA',price:0,change:0,sector:'AI晶片',target:0,support:0,resistance:0,horizon:'中長線',macd:18.7,rsi:71,kd_k:78,kd_d:70,boll:0.80,obv:'strong_up',ma:'bull_strong',fd:8,td:7,margin:14,shorts:16,vix:18.2,pmi:52.8,fed:'hold',ns:9,reasons:['Blackwell出貨加速數據中心季增50%+','機構13F大幅加碼','RSI強勢股動能持續'],news:'Blackwell供不應求，微軟Google各簽百億採購協議',src:'Bloomberg',risk:'估值偏高監管風險',earnings:{date:'2025-08-20',expect:'beat',preview:'EPS預估年增120%'}},
+  {symbol:'META',name:'Meta',yS:'META',price:0,change:0,sector:'社媒/AI',target:0,support:0,resistance:0,horizon:'中長線',macd:14.2,rsi:68,kd_k:74,kd_d:66,boll:0.75,obv:'strong_up',ma:'bull_strong',fd:7,td:6,margin:12,shorts:14,vix:18.2,pmi:52.8,fed:'hold',ns:9,reasons:['AI廣告Q1收入超預期27%','Llama 4生態強化','MACD黃金交叉布林突破'],news:'Meta Q1廣告年增27%，AI工具ROI提升30%',src:'Reuters',risk:'監管反壟斷調查',earnings:{date:'2025-07-30',expect:'beat',preview:'Q2 EPS超預期15%'}},
+  {symbol:'MSFT',name:'微軟',yS:'MSFT',price:0,change:0,sector:'雲端/AI',target:0,support:0,resistance:0,horizon:'長線',macd:6.4,rsi:60,kd_k:66,kd_d:59,boll:0.63,obv:'up',ma:'bull_strong',fd:7,td:6,margin:11,shorts:10,vix:18.2,pmi:52.8,fed:'hold',ns:8,reasons:['Azure AI成長加速','Copilot企業版付費超預期','外資持倉創新高'],news:'微軟Azure AI工作負載Q1年增60%',src:'WSJ',risk:'OpenAI競爭變化',earnings:{date:'2025-07-23',expect:'beat',preview:'Azure成長加速'}},
+  {symbol:'AMZN',name:'亞馬遜',yS:'AMZN',price:0,change:0,sector:'雲端/電商',target:0,support:0,resistance:0,horizon:'中線',macd:7.3,rsi:59,kd_k:65,kd_d:57,boll:0.62,obv:'up',ma:'bull_strong',fd:6,td:5,margin:13,shorts:11,vix:18.2,pmi:52.8,fed:'hold',ns:8,reasons:['AWS AI推論需求爆炸','廣告業務高毛利','突破前高技術面轉強'],news:'Amazon AWS Q1營收284億超預期8%',src:'CNBC',risk:'電商競爭壓力',earnings:{date:'2025-08-01',expect:'beat',preview:'Q2 EPS超預期12%'}},
+  {symbol:'GOOGL',name:'Alphabet',yS:'GOOGL',price:0,change:0,sector:'搜尋/AI',target:0,support:0,resistance:0,horizon:'中線',macd:5.8,rsi:57,kd_k:63,kd_d:56,boll:0.60,obv:'up',ma:'bull',fd:6,td:5,margin:12,shorts:9,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['Gemini整合搜尋廣告守住','GCP雲端成長加速','本益比低估具補漲空間'],news:'Google Gemini 2.0後搜尋市占91%',src:'FT',risk:'AI顛覆傳統廣告',earnings:{date:'2025-07-29',expect:'beat',preview:'搜尋廣告+GCP超預期'}},
+  {symbol:'AMD',name:'超微',yS:'AMD',price:0,change:0,sector:'CPU/GPU',target:0,support:0,resistance:0,horizon:'中線',macd:4.9,rsi:56,kd_k:62,kd_d:55,boll:0.58,obv:'up',ma:'bull',fd:5,td:4,margin:18,shorts:12,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['MI300X市佔持續蠶食NVIDIA','EPYC CPU出貨強','外資加碼技術面反轉'],news:'AMD MI300X推論市場優異，Meta採購擴大',src:'The Verge',risk:'NVIDIA技術仍領先',earnings:{date:'2025-07-29',expect:'beat',preview:'MI300X出貨超預期'}},
+  {symbol:'PLTR',name:'Palantir',yS:'PLTR',price:0,change:0,sector:'AI企業軟體',target:0,support:0,resistance:0,horizon:'中線',macd:2.1,rsi:64,kd_k:70,kd_d:62,boll:0.73,obv:'up',ma:'bull_strong',fd:5,td:4,margin:16,shorts:20,vix:18.2,pmi:52.8,fed:'hold',ns:8,reasons:['AIP企業AI訂單爆炸成長','政府AI國防合約擴大','融券20%具軋空潛力'],news:'Palantir獲美軍4.8億美元AI戰場分析合約',src:'Defense News',risk:'估值溢價高',earnings:{date:'2025-08-04',expect:'beat',preview:'商業合約成長加速'}},
+  {symbol:'ORCL',name:'甲骨文',yS:'ORCL',price:0,change:0,sector:'雲端資料庫',target:0,support:0,resistance:0,horizon:'長線',macd:3.8,rsi:55,kd_k:61,kd_d:54,boll:0.57,obv:'up',ma:'bull',fd:5,td:4,margin:13,shorts:10,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['OCI雲端AI合約積壓創新高','與NVIDIA微軟合作建AI叢集','配息穩定法人長線加碼'],news:'甲骨文AI合約積壓超1,300億美元，年增100%',src:'Reuters',risk:'雲端轉型慢於對手',earnings:{date:'2025-09-09',expect:'beat',preview:'OCI成長加速超預期'}},
+  {symbol:'CRM',name:'Salesforce',yS:'CRM',price:0,change:0,sector:'AI CRM',target:0,support:0,resistance:0,horizon:'中線',macd:4.2,rsi:57,kd_k:63,kd_d:56,boll:0.60,obv:'up',ma:'bull',fd:4,td:4,margin:15,shorts:9,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['Agentforce AI代理人銷售爆發','企業AI轉型支出強勁','外資加碼技術面轉強'],news:'Salesforce Agentforce訂單超預期，Q2 AI ARR翻倍',src:'WSJ',risk:'市場飽和競爭加劇',earnings:{date:'2025-08-27',expect:'beat',preview:'Agentforce帶動ARR成長'}},
+  {symbol:'ANET',name:'Arista',yS:'ANET',price:0,change:0,sector:'AI網路',target:0,support:0,resistance:0,horizon:'中線',macd:5.2,rsi:58,kd_k:64,kd_d:57,boll:0.61,obv:'up',ma:'bull',fd:5,td:4,margin:12,shorts:9,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['AI資料中心高速網路需求爆發','超大規模雲端客戶擴單','MACD翻揚週線長紅'],news:'Arista Q1營收超預期，AI叢集設備出貨年增45%',src:"Barron's",risk:'思科博通競爭',earnings:{date:'2025-07-29',expect:'beat',preview:'AI叢集網路需求持續'}},
+  {symbol:'NOW',name:'ServiceNow',yS:'NOW',price:0,change:0,sector:'AI企業軟體',target:0,support:0,resistance:0,horizon:'長線',macd:5.6,rsi:60,kd_k:65,kd_d:58,boll:0.63,obv:'up',ma:'bull_strong',fd:5,td:5,margin:11,shorts:8,vix:18.2,pmi:52.8,fed:'hold',ns:8,reasons:['AI工作流程自動化需求強','企業客戶擴大使用範圍','外資投信同步加碼'],news:'ServiceNow AI自動化訂單Q2年增55%，財星500客戶全面採用',src:'Bloomberg',risk:'高估值依賴成長維持',earnings:{date:'2025-07-23',expect:'beat',preview:'AI工作流佔比持續提升'}},
+  {symbol:'SNOW',name:'Snowflake',yS:'SNOW',price:0,change:0,sector:'雲端數據',target:0,support:0,resistance:0,horizon:'中線',macd:3.4,rsi:54,kd_k:59,kd_d:52,boll:0.56,obv:'up',ma:'bull',fd:4,td:3,margin:17,shorts:13,vix:18.2,pmi:52.8,fed:'hold',ns:6,reasons:['AI資料平台需求強勁','Cortex AI功能帶動消費型收入','外資近期加碼'],news:'Snowflake Cortex AI功能采用率超預期，Q2消費型收入加速',src:'TechCrunch',risk:'競爭激烈AWS Redshift搶市',earnings:{date:'2025-08-20',expect:'beat',preview:'AI消費型收入加速成長'}},
+  {symbol:'TSM',name:'台積電ADR',yS:'TSM',price:0,change:0,sector:'半導體代工',target:0,support:0,resistance:0,horizon:'長線',macd:11.2,rsi:63,kd_k:71,kd_d:63,boll:0.70,obv:'strong_up',ma:'bull_strong',fd:8,td:7,margin:14,shorts:10,vix:18.2,pmi:52.8,fed:'hold',ns:9,reasons:['美國建廠超預期政治風險降低','外資持倉比例提升機構布局','基本面與台積電同步'],news:'TSMC亞利桑那廠2奈米提前量產',src:'WSJ',risk:'ADR流動性較低',earnings:{date:'2025-07-17',expect:'beat',preview:'3/2奈米滿載CoWoS擴產'}},
+  {symbol:'AVGO',name:'博通',yS:'AVGO',price:0,change:0,sector:'AI晶片/網路',target:0,support:0,resistance:0,horizon:'中長線',macd:9.8,rsi:64,kd_k:70,kd_d:63,boll:0.72,obv:'strong_up',ma:'bull_strong',fd:6,td:6,margin:13,shorts:12,vix:18.2,pmi:52.8,fed:'hold',ns:8,reasons:['客製AI晶片XPU需求爆發','超大規模客戶Meta Google持續擴單','MACD多頭布林突破'],news:'博通客製AI晶片業務Q2年增220%，超越市場預期',src:'Bloomberg',risk:'客製晶片競爭加劇',earnings:{date:'2025-09-03',expect:'beat',preview:'AI XPU業務佔比超5成'}},
+  {symbol:'UBER',name:'Uber',yS:'UBER',price:0,change:0,sector:'共乘/自駕',target:0,support:0,resistance:0,horizon:'中線',macd:4.1,rsi:55,kd_k:61,kd_d:54,boll:0.58,obv:'up',ma:'bull',fd:4,td:3,margin:15,shorts:9,vix:18.2,pmi:52.8,fed:'hold',ns:7,reasons:['自駕車合作消息催化股價','外賣業務Delivery高毛利成長','外資近期加碼'],news:'Uber與Waymo擴大自駕車服務範圍，Delivery毛利率創新高',src:'Reuters',risk:'自駕車競爭格局未定',earnings:{date:'2025-08-05',expect:'beat',preview:'Delivery高毛利帶動整體獲利'}},
+  {symbol:'SPOT',name:'Spotify',yS:'SPOT',price:0,change:0,sector:'串流音樂',target:0,support:0,resistance:0,horizon:'中線',macd:3.7,rsi:56,kd_k:62,kd_d:55,boll:0.59,obv:'up',ma:'bull',fd:4,td:3,margin:14,shorts:8,vix:18.2,pmi:52.8,fed:'hold',ns:6,reasons:['AI播客推薦功能提升用戶黏著度','訂閱轉換率優化毛利提升','外資加碼技術面持續多頭'],news:'Spotify AI DJ功能用戶突破1億，高級訂閱成長超預期',src:'FT',risk:'蘋果音樂競爭',earnings:{date:'2025-07-29',expect:'beat',preview:'高級訂閱MAU成長加速'}},
+  {symbol:'TSLA',name:'特斯拉',yS:'TSLA',price:0,change:0,sector:'電動車',target:0,support:0,resistance:0,horizon:'短線',macd:-8.3,rsi:33,kd_k:28,kd_d:38,boll:0.20,obv:'down',ma:'bear',fd:-6,td:-5,margin:58,shorts:5,vix:18.2,pmi:52.8,fed:'hold',ns:1,reasons:['Q1交車量年減13%市占受壓','比亞迪持續侵蝕市場','MACD+KD+OBV三指標空頭'],news:'Tesla Q1交車量年減13%遠低於預期',src:'Reuters',risk:'競爭惡化持續失血',earnings:{date:'2025-07-23',expect:'miss',preview:'Q2 EPS恐再下修'}},
+  {symbol:'AAPL',name:'蘋果',yS:'AAPL',price:0,change:0,sector:'消費科技',target:0,support:0,resistance:0,horizon:'長線',macd:-3.1,rsi:46,kd_k:44,kd_d:48,boll:0.40,obv:'flat',ma:'flat',fd:-3,td:-2,margin:20,shorts:6,vix:18.2,pmi:52.8,fed:'hold',ns:3,reasons:['iPhone 16需求平淡','AI功能落後競爭者','技術面均線走弱'],news:'蘋果AI功能推出再度延遲，分析師下調預期',src:'Bloomberg',risk:'AI產品競爭落後',earnings:{date:'2025-07-31',expect:'neutral',preview:'iPhone銷量平淡'}},
+  {symbol:'INTC',name:'英特爾',yS:'INTC',price:0,change:0,sector:'CPU',target:0,support:0,resistance:0,horizon:'短線',macd:-3.8,rsi:31,kd_k:25,kd_d:33,boll:0.18,obv:'down',ma:'bear',fd:-7,td:-5,margin:62,shorts:4,vix:18.2,pmi:52.8,fed:'hold',ns:1,reasons:['市占被AMD持續蠶食','製程落後差距擴大','MACD深度死叉大幅賣超'],news:'英特爾Q1虧損超預期，Foundry轉型困難',src:'WSJ',risk:'轉型失敗風險高',earnings:{date:'2025-07-24',expect:'miss',preview:'Foundry虧損擴大'}},
+  {symbol:'NKE',name:'耐吉',yS:'NKE',price:0,change:0,sector:'消費品牌',target:0,support:0,resistance:0,horizon:'長線',macd:-2.8,rsi:42,kd_k:38,kd_d:45,boll:0.32,obv:'flat',ma:'flat',fd:-2,td:-1,margin:25,shorts:8,vix:18.2,pmi:52.8,fed:'hold',ns:3,reasons:['中國市場回復慢於預期','競品On、Hoka持續搶市','技術面偏空等待底部確認'],news:'耐吉Q3中國銷售年減8%，市占率持續被新興品牌侵蝕',src:'Bloomberg',risk:'品牌老化競爭加劇',earnings:{date:'2025-09-23',expect:'neutral',preview:'中國市場恢復進度待觀察'}},
+]
+};
+
+var STOCKS={tw:[],us:[]};
+var HIST={},BT={},PRED={};
+
+// ══════════════════════════════════════
+// FETCHER
+// ══════════════════════════════════════
+
+// 根據現價動態計算目標/支撐/壓力（不管API成功與否都呼叫）
+function calcLevels(s) {
+  var p = s.price;
+  if (!p || p <= 0) return;
+  // 目標價：依訊號方向和期限調整
+  var upside = s.grade && s.grade.rank >= 4
+    ? (s.horizon === '短線' ? 1.08 : s.horizon === '中線' ? 1.15 : 1.20)
+    : (s.grade && s.grade.rank <= 2 ? 0.88 : 1.05);
+  // 停損/支撐：依波動性調整
+  var stopPct = s.horizon === '短線' ? 0.95 : s.horizon === '中線' ? 0.93 : 0.90;
+  s.target     = parseFloat((p * upside).toFixed(2));
+  s.support    = parseFloat((p * stopPct).toFixed(2));
+  s.resistance = parseFloat((p * 1.08).toFixed(2));
+}
+
+function fetchP(y){
+  var u='https://query1.finance.yahoo.com/v8/finance/chart/'+y+'?interval=1d&range=2d';
+  var p='https://api.allorigins.win/get?url='+encodeURIComponent(u);
+  return fetch(p,{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+    var raw=JSON.parse(d.contents),q=raw.chart.result[0],m=q.meta;
+    var price=m.regularMarketPrice||m.previousClose||0;
+    var prev=m.chartPreviousClose||m.previousClose||price;
+    var chg=prev>0?((price-prev)/prev*100):0;
+    return{price:parseFloat(price.toFixed(2)),change:parseFloat(chg.toFixed(2)),live:true};
+  }).catch(function(){return null;});
+}
+function fetchH(y){
+  var u='https://query1.finance.yahoo.com/v8/finance/chart/'+y+'?interval=1d&range=2y';
+  var p='https://api.allorigins.win/get?url='+encodeURIComponent(u);
+  return fetch(p,{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+    var raw=JSON.parse(d.contents),q=raw.chart.result[0];
+    var ts=q.timestamp,cl=q.indicators.quote[0].close,vo=q.indicators.quote[0].volume;
+    var hist=[];
+    for(var i=0;i<ts.length;i++){if(cl[i]){hist.push({d:new Date(ts[i]*1000).toLocaleDateString('zh-TW',{month:'numeric',day:'numeric'}),c:cl[i],v:vo[i]||0});}}
+    return hist;
+  }).catch(function(){return null;});
+}
+function setProg(pct,txt){
+  document.getElementById('ldf').style.width=pct+'%';
+  document.getElementById('ld-pct').textContent=Math.round(pct)+'%';
+  if(txt)document.getElementById('ldst').textContent=txt;
+  // Update step indicators
+  if(pct>=3&&pct<43){
+    document.getElementById('ld-phase').textContent='第 1 步 / 共 3 步';
+    document.getElementById('step1').style.borderColor='#22c55e';
+    document.getElementById('step1').style.opacity='1';
+    document.getElementById('step1-icon').textContent='🔄';
+    document.getElementById('ld-eta').textContent='預計 5-10 秒';
+  }
+  if(pct>=43&&pct<55){
+    document.getElementById('ld-phase').textContent='第 2 步 / 共 3 步';
+    document.getElementById('step1-icon').textContent='✅';
+    document.getElementById('step2').style.borderColor='#22c55e';
+    document.getElementById('step2').style.opacity='1';
+    document.getElementById('step2-icon').textContent='🔄';
+    document.getElementById('ld-eta').textContent='幾秒鐘...';
+  }
+  if(pct>=55){
+    document.getElementById('ld-phase').textContent='第 3 步 / 共 3 步 · 即將完成';
+    document.getElementById('step2-icon').textContent='✅';
+    document.getElementById('step3').style.borderColor='#22c55e';
+    document.getElementById('step3').style.opacity='1';
+    document.getElementById('step3-icon').textContent='🔄';
+    document.getElementById('ld-eta').textContent='背景繼續補齊中';
+  }
+  if(pct>=100){
+    document.getElementById('step3-icon').textContent='✅';
+    document.getElementById('ld-phase').textContent='載入完成！';
+    document.getElementById('ld-eta').textContent='';
+  }
+}
+function mkChip(sym,st){var el=document.getElementById('c-'+sym);if(el)el.className='chip '+(st==='ok'?'ok':st==='g'?'g':'w');}
+
+async function loadAll(){
+  var all=DB.tw.concat(DB.us);
+  document.getElementById('ldch').innerHTML=all.map(function(s){return'<span class="chip w" id="c-'+s.symbol+'">'+s.symbol+'</span>';}).join('');
+  var done=0,total=all.length;
+
+
+  setProg(3,'抓取即時股價 (0/'+total+')...');
+  for(var i=0;i<all.length;i+=4){
+    var b=all.slice(i,Math.min(i+4,all.length));
+    await Promise.all(b.map(async function(s){
+      mkChip(s.symbol,'g');
+      var r=await fetchP(s.yS);
+      if(r){s.price=r.price;s.change=r.change;s.live=true;}else{s.live=false;}if(s.price>0){var tmpSc=calcScore(s),tmpG=getGrade(tmpSc);s.grade=tmpG;calcLevels(s);}
+      else s.live=false;
+      done++;setProg(3+Math.round(done/total*40),'股價 '+s.symbol+' ✓ ('+done+'/'+total+')');
+    }));
+  }
+  // 背景抓真實股價，每4支一批
+  setProg(50,'背景載入歷史數據...');
+  var done2=0;
+  for(var j=0;j<all.length;j+=2){
+    var b2=all.slice(j,Math.min(j+2,all.length));
+    await Promise.all(b2.map(async function(s){
+      mkChip(s.symbol,'g');
+      var h=await fetchH(s.yS);
+      if(h&&h.length>60){HIST[s.symbol]=h;var bt=runBacktest(s,h);BT[s.symbol]=bt;PRED[s.symbol]=mkPred(s,bt);}
+      else PRED[s.symbol]=mkPred(s,null);
+      mkChip(s.symbol,'ok');done2++;
+      setProg(50+Math.round(done2/all.length*45),'回測 '+s.symbol+' 完成 ('+done2+'/'+all.length+')');
+    }));
+  }
+  setProg(100,'完成！');
+  var now=new Date();
+  lastPriceUpdate=now;updateLupd();
+  render();
+}
+
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function bdg(g,lg){return'<span class="badge'+(lg?' lg':'')+' mono" style="background:'+g.bg+';color:'+g.color+';border-color:'+g.border+'">'+g.short+'</span>';}
+function ring(sc,g,sz){
+  sz=sz||50;var r=sz/2-5,cx=sz/2,cy=sz/2,circ=2*Math.PI*r,dash=circ*(sc/100),fs=sz>54?13:sz>42?11:9;
+  return'<div class="ring-wrap" style="width:'+sz+'px;height:'+sz+'px"><svg width="'+sz+'" height="'+sz+'" style="transform:rotate(-90deg)"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#f1f5f9" stroke-width="5"/><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+g.dot+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash+' '+circ+'"/></svg><div class="ring-in"><div class="mono" style="font-size:'+fs+'px;font-weight:900;color:'+g.color+';line-height:1">'+sc+'</div><div style="font-size:7px;color:#94a3b8">分</div></div></div>';
+}
+function spark(pos){
+  var pts=pos?[18,21,19,25,23,29,27,33,31,36,39,37,43]:[43,41,44,38,40,35,37,31,33,28,25,27,22];
+  var mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rng=mx-mn||1,W=80,H=24,p=2;
+  var co=pts.map(function(v,i){return[p+(i/(pts.length-1))*(W-2*p),p+(1-(v-mn)/rng)*(H-2*p)];});
+  var line=co.map(function(c,i){return(i===0?'M':'L')+c[0]+','+c[1];}).join(' ');
+  var fill=line+' L'+co[co.length-1][0]+','+H+' L'+co[0][0]+','+H+' Z';
+  var col=pos?'#22c55e':'#ef4444';
+  return'<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'"><defs><linearGradient id="sg'+(pos?1:0)+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity="0.2"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs><path d="'+fill+'" fill="url(#sg'+(pos?1:0)+')" /><path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function fmt(s,v){return(/^\d/.test(s.symbol)?'NT$':'$')+parseFloat(v).toLocaleString();}
+function liveTag(s){return s.live===false?'<span style="font-size:9px;color:#94a3b8">估算</span>':'<span style="font-size:9px;color:#22c55e"><span class="live-dot"></span>即時</span>';}
+function predTag(sym){var p=PRED[sym];if(!p)return'<span style="font-size:9px;color:#94a3b8">回測中</span>';var c=p.conf>=65?'#16a34a':p.conf>=50?'#d97706':'#dc2626';return'<span style="font-size:9px;font-weight:700;color:'+c+'">'+(p.dir==='up'?'↑':p.dir==='down'?'↓':'→')+p.conf+'%</span>';}
+
+// ══════════════════════════════════════
+// PAGES
+// ══════════════════════════════════════
+function renderPicks(){
+  var st=STOCKS[S.market];
+  var GK=['strong_buy','buy','watch','sell','strong_sell'];
+  var GC={strong_buy:'#10b981',buy:'#22c55e',watch:'#f59e0b',sell:'#ef4444',strong_sell:'#dc2626'};
+  var GL={strong_buy:'強買',buy:'買入',watch:'觀察',sell:'減碼',strong_sell:'強賣'};
+  var FL=[{k:'all',l:'全部'},{k:'strong_buy',l:'強買▲▲'},{k:'buy',l:'買入▲'},{k:'watch',l:'觀察◆'},{k:'sell',l:'減碼▼'},{k:'strong_sell',l:'強賣▼▼'}];
+  var FC={strong_buy:'#065f46',buy:'#166534',watch:'#92400e',sell:'#991b1b',strong_sell:'#7f1d1d'};
+  var FB={strong_buy:'#ecfdf5',buy:'#f0fdf4',watch:'#fffbeb',sell:'#fff1f2',strong_sell:'#fef2f2'};
+  var filtered=st.filter(function(s){return S.filter==='all'||s.grade.key===S.filter;}).sort(function(a,b){return S.sort==='score'?b.score-a.score:b.change-a.change;});
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股 (20)</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股 (20)</button></div>';
+  html+='<div class="sb"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:9px;color:#475569;letter-spacing:2px;font-weight:700">評分分布 · '+st.length+'支</div><div style="font-size:9px;color:#475569">VIX 18.2 · PMI 53 · Fed 維持</div></div><div class="sg">';
+  GK.forEach(function(k){html+='<div class="sc'+(S.filter===k?' active':'')+'" style="border-color:'+(S.filter===k?GC[k]:'transparent')+'" onclick="setFilter(\''+k+'\')"><div style="font-size:16px;font-weight:900;color:'+GC[k]+'">'+st.filter(function(s){return s.grade.key===k;}).length+'</div><div style="font-size:8px;color:#475569;margin-top:1px">'+GL[k]+'</div></div>';});
+  html+='</div></div><div class="fr">';
+  FL.forEach(function(f){var cnt=f.k==='all'?'':' ('+st.filter(function(s){return s.grade.key===f.k;}).length+')';var on=S.filter===f.k;html+='<button class="pill" style="'+(on?'background:'+(FB[f.k]||'#f1f5f9')+';color:'+(FC[f.k]||'#0f172a')+';border-color:'+(FC[f.k]||'#0f172a'):'')+'" onclick="setFilter(\''+f.k+'\')">'+(f.l+cnt)+'</button>';});
+  html+='<button class="pill" onclick="toggleSort()">排序:'+S.sort+'</button></div>';
+  filtered.forEach(function(s,i){
+    var e=getEI(s.earnings),pos=s.change>=0;
+    html+='<div class="card" style="border-left:4px solid '+s.grade.dot+';animation-delay:'+i*0.03+'s" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="display:flex;gap:9px;align-items:flex-start">'+ring(s.score,s.grade,50);
+    html+='<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap"><span class="mono" style="font-size:13px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div>';
+    var fr2=factorResonance(s),enh2=fr2.enhanced,ss=getSectorStrength(s.sector);
+    html+='<div style="display:flex;gap:5px;align-items:center;margin-bottom:4px;flex-wrap:wrap">'+liveTag(s)+predTag(s.symbol);
+    html+='<span style="font-size:9px;font-weight:700;background:'+enh2.rsGrade.bg+';color:'+enh2.rsGrade.color+';padding:1px 5px;border-radius:99px">RS:'+enh2.rsGrade.label+'</span>';
+    html+='<span style="font-size:9px;color:'+ss.color+';font-weight:700">'+s.sector+' '+ss.mom+'</span></div>';
+    html+='<div style="display:flex;gap:5px;align-items:center"><div class="cbar"><div class="cfill" style="width:'+s.score+'%;background:'+s.grade.dot+'"></div></div><span style="font-size:9px;color:#94a3b8">'+s.score+'分</span></div></div>';
+    html+='<div style="text-align:right;flex-shrink:0"><div class="mono" style="font-size:12px;font-weight:900">'+fmt(s,s.price)+'</div><div style="font-size:10px;font-weight:700;color:'+(pos?'#16a34a':'#dc2626')+'">'+(pos?'+':'')+s.change.toFixed(2)+'%</div>'+spark(pos)+'</div></div>';
+    html+='<div style="margin-top:7px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><div style="font-size:10px;color:#64748b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📰 '+s.news+'</div>'+(e?'<div style="flex-shrink:0;font-size:9px;color:'+e.color+';background:'+(e.color==='#16a34a'?'#f0fdf4':e.color==='#dc2626'?'#fff1f2':'#fffbeb')+';padding:2px 6px;border-radius:6px;font-weight:700">'+e.icon+e.days+'天</div>':'')+'</div></div>';
+  });
+  html+='<div style="margin-top:16px;font-size:10px;color:#cbd5e1;text-align:center;line-height:1.8"><span class="live-dot"></span>股價來自 Yahoo Finance · 回測預判持續更新<br/>⚠️ 僅供參考，不構成投資建議</div>';
+  return html;
+}
+
+
+// ══════════════════════════════════════
+// PAGE: DIMENSION（全維度雷達）
+// ══════════════════════════════════════
+function renderDimension(){
+  var st=STOCKS[S.market];
+  var dimDefs=[
+    {key:'tech',label:'技術面',max:25,color:'#3b82f6'},
+    {key:'chip',label:'籌碼面',max:25,color:'#8b5cf6'},
+    {key:'fund',label:'基本面',max:20,color:'#22c55e'},
+    {key:'rs',  label:'相對強弱',max:15,color:'#f59e0b'},
+    {key:'macro',label:'總經面',max:10,color:'#06b6d4'},
+    {key:'sentiment',label:'新聞情緒',max:5,color:'#ec4899'},
+  ];
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  html+='<div style="background:#0f172a;border-radius:14px;padding:13px;margin-bottom:11px">';
+  html+='<div style="font-size:9px;color:#475569;letter-spacing:2px;margin-bottom:9px;font-weight:700">全維度系統 · 6大維度市場平均</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">';
+  dimDefs.forEach(function(d){
+    var a=Math.round(st.reduce(function(acc,s){return acc+(s.dims?s.dims[d.key]:0);},0)/st.length);
+    var pct=Math.round(a/d.max*100);
+    html+='<div style="background:#1e293b;border-radius:9px;padding:9px;text-align:center">';
+    html+='<div style="font-size:16px;font-weight:900;color:'+d.color+'">'+a+'<span style="font-size:9px;color:#475569">/'+d.max+'</span></div>';
+    html+='<div style="font-size:8px;color:#475569;margin-top:1px;margin-bottom:4px">'+d.label+'</div>';
+    html+='<div style="height:3px;background:#0f172a;border-radius:99px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+d.color+'"></div></div>';
+    html+='</div>';
+  });
+  html+='</div></div>';
+  st.slice().sort(function(a,b){return b.score-a.score;}).forEach(function(s){
+    if(!s.dims)return;
+    var d=s.dims;
+    html+='<div class="card" style="border-left:4px solid '+s.grade.dot+'" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="display:flex;gap:9px;align-items:center;margin-bottom:10px">'+ring(s.score,s.grade,46);
+    html+='<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="mono" style="font-size:13px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div>';
+    html+='<div style="font-size:9px;color:#94a3b8">'+s.sector+' · '+s.horizon+'</div></div>';
+    html+='<div style="text-align:right"><div class="mono" style="font-size:12px;font-weight:900">'+fmt(s,s.price)+'</div><div style="font-size:10px;color:'+(s.change>=0?'#16a34a':'#dc2626')+';font-weight:700">'+(s.change>=0?'+':'')+s.change.toFixed(2)+'%</div></div></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">';
+    dimDefs.forEach(function(dd){
+      var v=d[dd.key]||0,pct=Math.round(v/dd.max*100);
+      var col=pct>=75?dd.color:pct>=50?dd.color+'cc':'#94a3b8';
+      html+='<div style="background:#f8fafc;border-radius:7px;padding:6px 7px;border:1px solid #e2e8f0">';
+      html+='<div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:3px"><span style="color:#94a3b8">'+dd.label+'</span><span style="font-weight:700;color:'+col+'">'+v+'/'+dd.max+'</span></div>';
+      html+='<div style="height:3px;background:#f1f5f9;border-radius:99px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+col+'"></div></div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">';
+    [{l:'EPS增長',v:(s.eps_growth>0?'+':'')+s.eps_growth+'%',c:s.eps_growth>15?'#16a34a':s.eps_growth>0?'#f59e0b':'#dc2626'},
+     {l:'營收',v:s.rev_accel==='accel'?'加速':s.rev_accel==='stable'?'穩定':'減速',c:s.rev_accel==='accel'?'#16a34a':s.rev_accel==='stable'?'#f59e0b':'#dc2626'},
+     {l:'毛利率',v:s.margin_trend==='expand'?'擴張':s.margin_trend==='flat'?'持平':'收縮',c:s.margin_trend==='expand'?'#16a34a':s.margin_trend==='flat'?'#f59e0b':'#dc2626'},
+     {l:'估值',v:s.valuation==='cheap'?'偏低':s.valuation==='fair'?'合理':s.valuation==='rich'?'偏高':'極高',c:s.valuation==='cheap'?'#16a34a':s.valuation==='fair'?'#22c55e':s.valuation==='rich'?'#f59e0b':'#dc2626'}
+    ].forEach(function(r){
+      html+='<div style="background:#f8fafc;border-radius:7px;padding:5px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:7px;color:#94a3b8;margin-bottom:1px">'+r.l+'</div><div style="font-size:9px;font-weight:700;color:'+r.c+'">'+r.v+'</div></div>';
+    });
+    html+='</div></div>';
+  });
+  return html;
+}
+
+// ══════════════════════════════════════
+// PAGE: SECTOR（產業輪動）
+// ══════════════════════════════════════
+function renderSector(){
+  var st=STOCKS[S.market];
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  var sectors={};
+  st.forEach(function(s){
+    if(!sectors[s.sector])sectors[s.sector]={stocks:[],sectorRank:s.sector_rank};
+    sectors[s.sector].stocks.push(s);
+  });
+  Object.keys(sectors).forEach(function(k){
+    var arr=sectors[k].stocks;
+    sectors[k].avgScore=Math.round(arr.reduce(function(a,s){return a+s.score;},0)/arr.length);
+    sectors[k].avgRs=Math.round(arr.reduce(function(a,s){return a+s.rs_market;},0)/arr.length);
+    sectors[k].sectorRank=Math.round(arr.reduce(function(a,s){return a+s.sector_rank;},0)/arr.length);
+  });
+  var sortedSectors=Object.keys(sectors).sort(function(a,b){return sectors[b].sectorRank-sectors[a].sectorRank;});
+  html+='<div style="background:#0f172a;border-radius:14px;padding:13px;margin-bottom:11px">';
+  html+='<div style="font-size:9px;color:#475569;letter-spacing:2px;margin-bottom:9px;font-weight:700">🏭 產業輪動強度排行</div>';
+  html+='<div style="font-size:9px;color:#334155;margin-bottom:10px">資金流入哪個產業，個股才更有上漲動力</div>';
+  sortedSectors.forEach(function(k){
+    var sec=sectors[k],rank=sec.sectorRank;
+    var col=rank>=80?'#10b981':rank>=60?'#22c55e':rank>=40?'#f59e0b':'#ef4444';
+    html+='<div style="margin-bottom:8px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html+='<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;font-weight:700;color:#fff">'+k+'</span><span style="font-size:9px;color:#475569">'+sec.stocks.length+'支 均分'+sec.avgScore+'</span></div>';
+    html+='<div style="font-size:11px;font-weight:900;color:'+col+'">'+rank+'%</div></div>';
+    html+='<div style="height:5px;background:#1e293b;border-radius:99px;overflow:hidden"><div style="width:'+rank+'%;height:100%;background:'+col+';border-radius:99px"></div></div></div>';
+  });
+  html+='</div>';
+  sortedSectors.forEach(function(k){
+    var sec=sectors[k],rank=sec.sectorRank;
+    var col=rank>=80?'#10b981':rank>=60?'#22c55e':rank>=40?'#f59e0b':'#ef4444';
+    html+='<div style="margin-bottom:10px">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="background:'+col+';color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px">'+k+'</div><div style="font-size:9px;color:#94a3b8">強度'+rank+'% · RS均'+sec.avgRs+'</div></div>';
+    sec.stocks.forEach(function(s){
+      var pos=s.change>=0;
+      html+='<div class="card" style="border-left:4px solid '+s.grade.dot+';margin-bottom:6px" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+      html+='<div style="display:flex;gap:9px;align-items:center">'+ring(s.score,s.grade,44);
+      html+='<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="mono" style="font-size:12px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div>';
+      html+='<div style="display:flex;gap:8px;margin-top:3px"><span style="font-size:9px;color:#94a3b8">RS大盤<strong style="color:'+(s.rs_market>=70?'#16a34a':s.rs_market>=40?'#f59e0b':'#dc2626')+'"> '+s.rs_market+'%</strong></span><span style="font-size:9px;color:#94a3b8">RS同業<strong style="color:'+(s.rs_sector>=70?'#16a34a':s.rs_sector>=40?'#f59e0b':'#dc2626')+'"> '+s.rs_sector+'%</strong></span><span style="font-size:9px;color:#94a3b8">動能<strong style="color:'+(s.momentum_rank>=70?'#16a34a':s.momentum_rank>=40?'#f59e0b':'#dc2626')+'"> '+s.momentum_rank+'%</strong></span></div></div>';
+      html+='<div style="text-align:right"><div class="mono" style="font-size:12px;font-weight:900">'+fmt(s,s.price)+'</div><div style="font-size:10px;font-weight:700;color:'+(pos?'#16a34a':'#dc2626')+'">'+(pos?'+':'')+s.change.toFixed(2)+'%</div></div></div></div>';
+    });
+    html+='</div>';
+  });
+  return html;
+}
+
+
+function renderPredict(){
+  var st=STOCKS[S.market];
+  var bullC=st.filter(function(s){var p=PRED[s.symbol];return p&&p.dir==='up'&&p.conf>=60;}).length;
+  var bearC=st.filter(function(s){var p=PRED[s.symbol];return p&&p.dir==='down'&&p.conf>=60;}).length;
+  var mkt=bullC>bearC?'偏多':bullC<bearC?'偏空':'中性';
+  var mc=bullC>bearC?'#16a34a':bullC<bearC?'#dc2626':'#d97706';
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  html+='<div style="background:#0f172a;border-radius:14px;padding:13px;margin-bottom:11px">';
+  html+='<div style="font-size:9px;color:#475569;letter-spacing:2px;margin-bottom:9px;font-weight:700">市場統計預判摘要</div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div><div style="font-size:11px;color:#64748b">整體方向</div><div style="font-size:22px;font-weight:900;color:'+mc+'">'+mkt+'</div></div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><div style="text-align:center;background:#1e293b;border-radius:9px;padding:7px"><div style="font-size:16px;font-weight:900;color:#22c55e">'+bullC+'</div><div style="font-size:8px;color:#475569">看多</div></div><div style="text-align:center;background:#1e293b;border-radius:9px;padding:7px"><div style="font-size:16px;font-weight:900;color:#f59e0b">'+(st.length-bullC-bearC)+'</div><div style="font-size:8px;color:#475569">中性</div></div><div style="text-align:center;background:#1e293b;border-radius:9px;padding:7px"><div style="font-size:16px;font-weight:900;color:#ef4444">'+bearC+'</div><div style="font-size:8px;color:#475569">看空</div></div></div></div>';
+  html+='<div style="font-size:9px;color:#334155">基於歷史回測：找出過去2年內與當前技術型態相似的時期，統計後續表現勝率</div></div>';
+  var sorted=st.slice().sort(function(a,b){var pa=PRED[a.symbol],pb=PRED[b.symbol];if(!pa||!pb)return 0;var ca=pa.dir==='up'?pa.conf:pa.dir==='down'?-pa.conf:0,cb=pb.dir==='up'?pb.conf:pb.dir==='down'?-pb.conf:0;return cb-ca;});
+  sorted.forEach(function(s){
+    var p=PRED[s.symbol],bt=BT[s.symbol];
+    if(!p){html+='<div class="card" style="border-left:4px solid #e2e8f0"><div style="display:flex;gap:9px;align-items:center">'+ring(s.score,s.grade,44)+'<div><div class="mono" style="font-weight:900;font-size:13px">'+s.symbol+'</div><div style="font-size:10px;color:#94a3b8">回測計算中...</div></div></div></div>';return;}
+    var du=p.dir==='up',dd=p.dir==='down';
+    var pBg=du?'#f0fdf4':dd?'#fff1f2':'#fffbeb',pBd=du?'#22c55e':dd?'#ef4444':'#f59e0b',cCol=p.conf>=70?'#16a34a':p.conf>=55?'#d97706':'#dc2626';
+    html+='<div class="card" style="border-left:4px solid '+pBd+'" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:9px">'+ring(s.score,s.grade,46);
+    html+='<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap"><span class="mono" style="font-size:13px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div><div style="font-size:9px;color:#94a3b8">'+s.sector+'</div></div>';
+    html+='<div style="text-align:right"><div class="mono" style="font-size:12px;font-weight:900">'+fmt(s,s.price)+'</div><div style="font-size:10px;font-weight:700;color:'+(s.change>=0?'#16a34a':'#dc2626')+'">'+(s.change>=0?'+':'')+s.change.toFixed(2)+'%</div></div></div>';
+    html+='<div style="background:'+pBg+';border-radius:11px;padding:11px;border:1px solid '+pBd+'30">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    html+='<div><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">'+(p.src==='bt'?'歷史回測 ('+p.n+'筆)':'模型估算')+'</div><div style="font-size:17px;font-weight:900;color:'+pBd+'">'+(du?'📈 看多':dd?'📉 看空':'➡ 中性')+'</div></div>';
+    html+='<div style="text-align:right"><div style="font-size:9px;color:#94a3b8">預判信心度</div><div style="font-size:24px;font-weight:900;color:'+cCol+'">'+p.conf+'%</div></div></div>';
+    html+='<div style="height:5px;background:#ffffff60;border-radius:99px;overflow:hidden;margin-bottom:10px"><div style="width:'+p.conf+'%;height:100%;background:'+cCol+';border-radius:99px"></div></div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
+    [{d:'5天',e:p.e5,w:p.w5},{d:'10天',e:p.e10,w:p.w10},{d:'20天',e:p.e20,w:p.w20}].forEach(function(h){
+      var wc=h.w>=65?'#16a34a':h.w>=50?'#d97706':'#dc2626';
+      html+='<div style="background:#fff;border-radius:8px;padding:8px 6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">'+h.d+'後</div><div style="font-size:12px;font-weight:900;color:'+pBd+'">'+h.e+'</div><div style="font-size:9px;font-weight:700;color:'+wc+'">勝率'+h.w+'%</div></div>';
+    });
+    html+='</div>';
+    if(p.src==='bt')html+='<div style="margin-top:7px;font-size:9px;color:#94a3b8;text-align:center">'+p.n+'筆相似型態 · 平均相似度 '+p.sim+'%</div>';
+    html+='</div></div>';
+  });
+  html+='<div style="margin-top:14px;font-size:10px;color:#cbd5e1;text-align:center;line-height:1.7">回測基於Yahoo Finance 2年歷史數據<br/>⚠️ 歷史表現不代表未來</div>';
+  return html;
+}
+
+function renderFactor(){
+  var st=STOCKS[S.market];
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  html+='<div style="background:#0f172a;border-radius:14px;padding:13px;margin-bottom:11px">';
+  html+='<div style="font-size:9px;color:#475569;letter-spacing:2px;margin-bottom:8px;font-weight:700">⚡ 最強因子模型說明</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  [{n:'動能共振★★★',d:'均線多頭+量能放大',w:'~76%'},{n:'法人共識★★★',d:'外資+投信同步買超',w:'~74%'},{n:'技術黃金區★★★',d:'MACD多頭+RSI 50-65',w:'~70%'},{n:'籌碼乾淨★★',d:'低融資+高融券',w:'~68%'},{n:'法說前效應★★',d:'法說前2週+預期優異',w:'~72%'},{n:'市場環境★★',d:'VIX低+PMI強',w:'~65%'}].forEach(function(f){
+    html+='<div style="background:#1e293b;border-radius:9px;padding:9px"><div style="font-size:10px;font-weight:700;color:#fff;margin-bottom:3px">'+f.n+'</div><div style="font-size:9px;color:#475569;margin-bottom:4px">'+f.d+'</div><div style="font-size:11px;font-weight:900;color:#22c55e">歷史勝率 '+f.w+'</div></div>';
+  });
+  html+='</div><div style="margin-top:9px;font-size:9px;color:#334155">5因子以上共振勝率達76%，單因子僅52-58%</div></div>';
+  // 每股因子評分
+  var sorted=st.slice().sort(function(a,b){var fa=factorResonance(a),fb=factorResonance(b);return fb.matchCount-fa.matchCount||fb.score-fa.score;});
+  sorted.forEach(function(s){
+    var fr=factorResonance(s);
+    var mc=fr.matchCount>=5?'#10b981':fr.matchCount>=4?'#22c55e':fr.matchCount>=3?'#f59e0b':fr.matchCount>=2?'#ef4444':'#94a3b8';
+    html+='<div class="card" style="border-left:4px solid '+mc+'" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:9px">';
+    html+=ring(fr.score,s.grade,48);
+    html+='<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap"><span class="mono" style="font-size:13px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div>';
+    html+='<div style="font-size:9px;color:#94a3b8;margin-bottom:5px">'+s.sector+' · 基礎評分'+fr.raw+'分 +加成'+fr.bonus+'分</div>';
+    var enh3=fr.enhanced;
+    html+='<div style="display:flex;align-items:center;gap:6px"><div style="font-size:13px;font-weight:900;color:'+mc+'">'+fr.matchCount+'/10因子</div><div style="font-size:11px;font-weight:700;color:'+mc+'">勝率'+fr.winRate+'%</div></div>';
+    // New metrics row
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:7px">';
+    html+='<div style="background:#f8fafc;border-radius:7px;padding:6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8">RS評級</div><div style="font-size:12px;font-weight:900;color:'+enh3.rsGrade.color+'">'+enh3.rsGrade.label+'</div></div>';
+    var sst=getSectorStrength(s.sector);
+    html+='<div style="background:#f8fafc;border-radius:7px;padding:6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8">產業強度</div><div style="font-size:11px;font-weight:900;color:'+sst.color+'">Rank'+sst.rank+'</div></div>';
+    var ff=getFundamental(s.symbol);
+    html+='<div style="background:#f8fafc;border-radius:7px;padding:6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8">EPS成長</div><div style="font-size:11px;font-weight:900;color:'+\(ff.epsG>=20?'#16a34a':ff.epsG>=0?'#d97706':'#dc2626')+'">'+\(ff.epsG>0?'+':'')+ff.epsG+'%</div></div>';
+    var cd2=getChipData(s.symbol);
+    html+='<div style="background:#f8fafc;border-radius:7px;padding:6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8">買超佔比</div><div style="font-size:11px;font-weight:900;color:'+\(cd2.buyRatio>=10?'#16a34a':cd2.buyRatio>=5?'#d97706':'#dc2626')+'">'+cd2.buyRatio+'%</div></div>';
+    html+='</div></div>';
+    html+='<div style="text-align:right;flex-shrink:0"><div class="mono" style="font-size:12px;font-weight:900">'+fmt(s,s.price)+'</div><div style="font-size:10px;font-weight:700;color:'+(s.change>=0?'#16a34a':'#dc2626')+'">'+(s.change>=0?'+':'')+s.change.toFixed(2)+'%</div></div></div>';
+    // Factor pills
+    html+='<div style="display:flex;flex-wrap:wrap;gap:5px">';
+    fr.factors.forEach(function(f){
+      var on=f.match;
+      html+='<div style="padding:3px 8px;border-radius:99px;font-size:9px;font-weight:700;background:'+(on?'#f0fdf4':'#f8fafc')+';color:'+(on?'#16a34a':'#94a3b8')+';border:1px solid '+(on?'#bbf7d0':'#e2e8f0')+'">'+f.name+' '+(on?'✓ '+f.win:'✗')+'</div>';
+    });
+    html+='</div></div>';
+  });
+  return html;
+}
+
+function renderOperation(){
+  var st=STOCKS[S.market];
+  var top=st.filter(function(s){return s.grade.key==='strong_buy';}).sort(function(a,b){return b.score-a.score;})[0];
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  if(top){
+    var tp=PRED[top.symbol],fr=factorResonance(top),cur=/^\d/.test(top.symbol)?'NT$':'$';
+    html+='<div style="background:linear-gradient(135deg,#065f46,#059669);border-radius:14px;padding:16px;margin-bottom:12px;cursor:pointer" onclick="openModal(\''+top.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="font-size:9px;color:#6ee7b7;letter-spacing:2px;margin-bottom:5px;font-weight:700">🏆 今日最強買入標的</div>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center"><div>';
+    html+='<div class="mono" style="font-size:19px;font-weight:900;color:#fff">'+top.symbol+' '+top.name+'</div>';
+    html+='<div style="font-size:12px;color:#a7f3d0;margin-top:2px">評分 <strong style="color:#fff;font-size:16px">'+top.score+'</strong>分 · '+fr.matchCount+'/6因子共振 · 勝率'+fr.winRate+'%</div>';
+    if(tp)html+='<div style="font-size:10px;color:#6ee7b7;margin-top:3px">'+(tp.dir==='up'?'↑':'↓')+' 10天勝率 <strong style="color:#fff">'+tp.w10+'%</strong> · 預估 '+tp.e10+'</div>';
+    html+='</div>'+ring(top.score,top.grade,58)+'</div></div>';
+  }
+  st.filter(function(s){return s.grade.rank!==3;}).sort(function(a,b){return b.score-a.score;}).forEach(function(s){
+    var isBuy=s.grade.rank>=4,p=PRED[s.symbol],fr=factorResonance(s);
+    var cur=/^\d/.test(s.symbol)?'NT$':'$';
+    var bp=(s.price*(1-(s.boll>0.7?0.02:0.01))).toFixed(1);
+    var sl=(s.support*0.97).toFixed(1);
+    var hd=s.horizon==='短線'?14:s.horizon==='中線'?60:120;
+    var sd=new Date();sd.setDate(sd.getDate()+hd);
+    var sds=sd.toLocaleDateString('zh-TW',{month:'long',day:'numeric'});
+    var rew=((s.target-s.price)/s.price*100).toFixed(1);
+    var e=getEI(s.earnings);
+    html+='<div class="op-card" style="background:#fff;border-radius:14px;padding:13px;margin-bottom:10px;border:1px solid #e2e8f0;border-left:4px solid '+s.grade.dot+';cursor:pointer" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="display:flex;gap:8px;align-items:center">'+ring(s.score,s.grade,42);
+    html+='<div><div style="display:flex;gap:5px;align-items:center"><span class="mono" style="font-size:13px;font-weight:900">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span></div>'+bdg(s.grade)+'<div style="font-size:9px;color:#94a3b8;margin-top:2px">'+fr.matchCount+'/6因子 勝率'+fr.winRate+'%</div></div></div>';
+    html+='<div style="text-align:right"><div class="mono" style="font-size:13px;font-weight:900">'+fmt(s,s.price)+'</div>'+(p?'<div style="font-size:9px;font-weight:700;color:'+(p.dir==='up'?'#16a34a':p.dir==='down'?'#dc2626':'#d97706')+'">'+(p.dir==='up'?'↑':'↓')+'回測勝率'+p.conf+'%</div>':'')+'</div></div>';
+    html+='<div style="display:grid;grid-template-columns:'+(isBuy?'1fr 1fr 1fr 1fr':'1fr 1fr')+';gap:6px">';
+    if(isBuy){html+='<div class="obox" style="background:#f0fdf4;border-color:#bbf7d0"><div class="obox-l">建議買入</div><div class="obox-v mono" style="color:#16a34a">'+cur+bp+'</div></div>';html+='<div class="obox" style="background:#f0fdf4;border-color:#bbf7d0"><div class="obox-l">目標價</div><div class="obox-v mono" style="color:#16a34a">'+fmt(s,s.target)+'</div></div>';}
+    html+='<div class="obox" style="background:#fff1f2;border-color:#fecaca"><div class="obox-l">'+(isBuy?'停損':'出場')+'</div><div class="obox-v mono" style="color:#dc2626;font-size:11px">'+(isBuy?cur+sl:fmt(s,s.price))+'</div></div>';
+    html+='<div class="obox" style="background:#f8fafc;border-color:#e2e8f0"><div class="obox-l">'+(isBuy?'出場日':'跌幅')+'</div><div style="font-size:10px;font-weight:700;color:#475569">'+(isBuy?sds:'-'+Math.abs(rew)+'%')+'</div></div>';
+    html+='</div></div>';
+  });
+  return html;
+}
+
+function renderEarnings(){
+  var st=STOCKS[S.market];
+  var items=st.map(function(s){var e=getEI(s.earnings);return e?Object.assign({},s,{ei:e}):null;}).filter(Boolean).sort(function(a,b){return a.ei.days-b.ei.days;});
+  var html='<div class="mkt-row"><button class="mkt-btn'+(S.market==='tw'?' on':'')+'" onclick="setMkt(\'tw\')">🇹🇼 台股</button><button class="mkt-btn'+(S.market==='us'?' on':'')+'" onclick="setMkt(\'us\')">🇺🇸 美股</button></div>';
+  html+='<div style="background:#fff;border-radius:14px;padding:13px;margin-bottom:11px;border:1px solid #e2e8f0"><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:9px">📅 近期法說會 ('+items.length+'場)</div>';
+  items.forEach(function(s){
+    var p=PRED[s.symbol];
+    var ic=s.ei.color==='#16a34a'?'#f0fdf4':s.ei.color==='#dc2626'?'#fff1f2':'#fffbeb';
+    html+='<div style="display:flex;gap:9px;padding:10px 11px;background:#f8fafc;border-radius:11px;border:1px solid '+s.ei.color+'20;cursor:pointer;align-items:center;margin-bottom:7px" onclick="openModal(\''+s.symbol+'\',\''+S.market+'\')">';
+    html+='<div style="width:42px;height:42px;border-radius:9px;background:'+ic+';border:1.5px solid '+s.ei.color+'40;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><div style="font-size:15px">'+s.ei.icon+'</div><div style="font-size:7px;font-weight:700;color:'+s.ei.color+'">'+s.ei.days+'天</div></div>';
+    html+='<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span class="mono" style="font-weight:900;font-size:12px">'+s.symbol+'</span><span style="font-size:11px;color:#475569">'+s.name+'</span>'+bdg(s.grade)+'</div>';
+    html+='<div style="font-size:10px;font-weight:700;color:'+s.ei.color+';margin-bottom:1px">'+s.ei.label+'</div>';
+    html+='<div style="font-size:9px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.earnings.preview+'</div></div>';
+    html+='<div style="text-align:right;flex-shrink:0"><div class="mono" style="font-size:11px;font-weight:900;color:'+s.grade.color+'">'+s.score+'分</div>'+(p?'<div style="font-size:9px;font-weight:700;color:'+(p.dir==='up'?'#16a34a':p.dir==='down'?'#dc2626':'#d97706')+'">'+(p.dir==='up'?'↑':'↓')+p.conf+'%</div>':'')+'<div style="font-size:9px;color:#94a3b8">'+new Date(s.earnings.date).toLocaleDateString('zh-TW',{month:'numeric',day:'numeric'})+'</div></div></div>';
+  });
+  html+='</div>';
+  html+='<div style="background:#eff6ff;border-radius:11px;padding:12px;border:1px solid #bfdbfe"><div style="font-size:10px;font-weight:700;color:#2563eb;margin-bottom:7px">📌 法說會操作原則</div>';
+  [{c:'#16a34a',t:'預計優於預期',d:'法說前1-2週布局，法說後上漲分批了結'},{c:'#dc2626',t:'預計低於預期',d:'法說前提前減碼，避免法說後跳水'},{c:'#d97706',t:'結果中性',d:'觀望法說結果再決定進出'}].forEach(function(r,i){html+='<div style="display:flex;gap:7px;margin-bottom:'+(i<2?'7px':'0')+'"><div style="width:3px;background:'+r.c+';border-radius:99px;flex-shrink:0"></div><div><div style="font-size:10px;font-weight:700;color:'+r.c+'">'+r.t+'</div><div style="font-size:10px;color:#64748b">'+r.d+'</div></div></div>';});
+  html+='</div>';
+  return html;
+}
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+function openModal(sym,mkt){
+  var s=STOCKS[mkt].find(function(x){return x.symbol===sym;});
+  if(!s)return;
+  var p=PRED[sym],bt=BT[sym],e=getEI(s.earnings),fr=factorResonance(s);
+  var isBuy=s.grade.rank>=4,isSell=s.grade.rank<=2,pos=s.change>=0;
+  var cur=/^\d/.test(s.symbol)?'NT$':'$';
+  var bp=(s.price*(1-(s.boll>0.7?0.02:0.01))).toFixed(1);
+  var sl=(s.support*0.97).toFixed(1);
+  var hd=s.horizon==='短線'?14:s.horizon==='中線'?60:120;
+  var sd=new Date();sd.setDate(sd.getDate()+hd);
+  var sds=sd.toLocaleDateString('zh-TW',{month:'long',day:'numeric'});
+  var rew=((s.target-s.price)/s.price*100).toFixed(1);
+  var rsk=((s.price-sl)/s.price*100).toFixed(1);
+  var rr=(Math.abs(rew/rsk)).toFixed(1);
+  var html='';
+
+  // Header
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px">';
+  html+='<div><div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span class="mono" style="font-size:18px;font-weight:900">'+s.symbol+'</span><span style="font-size:13px;color:#475569">'+s.name+'</span></div>';
+  html+='<div style="display:flex;gap:5px;flex-wrap:wrap">'+bdg(s.grade,true)+liveTag(s)+'<span style="font-size:10px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">'+s.sector+'</span></div></div>';
+  html+='<div style="text-align:right">'+ring(s.score,s.grade,56)+'<div class="mono" style="font-size:14px;font-weight:900;margin-top:2px">'+fmt(s,s.price)+'</div><div style="font-size:10px;font-weight:700;color:'+(pos?'#16a34a':'#dc2626')+'">'+(pos?'+':'')+s.change.toFixed(2)+'%</div></div></div>';
+
+  // Earnings
+  if(e){var ebc=e.boost>0?'#16a34a':e.boost<0?'#dc2626':'#94a3b8';html+='<div style="background:'+(e.color==='#dc2626'?'#fff1f2':e.color==='#16a34a'?'#f0fdf4':'#fffbeb')+';border:1px solid '+e.color+'30;border-radius:11px;padding:10px 12px;margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><div style="font-size:9px;color:#64748b;margin-bottom:2px">📅 法說會 · '+e.days+'天後</div><div style="font-size:12px;font-weight:800;color:'+e.color+'">'+e.label+'</div><div style="font-size:10px;color:#64748b;margin-top:2px">'+s.earnings.preview+'</div></div><div style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:7px;border:1px solid;color:'+ebc+';background:'+(e.boost>0?'#f0fdf4':e.boost<0?'#fff1f2':'#f8fafc')+';border-color:'+(e.boost>0?'#bbf7d0':e.boost<0?'#fecaca':'#e2e8f0')+'">評分<br/>'+(e.boost>0?'+':'')+e.boost+'</div></div></div>';}
+
+  // Prediction
+  if(p){
+    var du=p.dir==='up',dd=p.dir==='down',pBg=du?'#f0fdf4':dd?'#fff1f2':'#fffbeb',pBd=du?'#22c55e':dd?'#ef4444':'#f59e0b',cc=p.conf>=70?'#16a34a':p.conf>=55?'#d97706':'#dc2626';
+    html+='<div style="background:'+pBg+';border:2px solid '+pBd+';border-radius:13px;padding:13px;margin-bottom:10px">';
+    html+='<div style="font-size:9px;font-weight:700;color:'+pBd+';letter-spacing:1.5px;margin-bottom:9px">🔮 '+(p.src==='bt'?'歷史回測預判 ('+p.n+'筆相似型態)':'模型預判')+'</div>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div><div style="font-size:18px;font-weight:900;color:'+pBd+'">'+(du?'📈 看多':dd?'📉 看空':'➡ 中性')+'</div>'+(p.src==='bt'?'<div style="font-size:9px;color:#64748b;margin-top:2px">相似度 '+p.sim+'% · 過去2年資料</div>':'')+'</div><div style="text-align:right"><div style="font-size:10px;color:#94a3b8">預判信心度</div><div style="font-size:26px;font-weight:900;color:'+cc+'">'+p.conf+'%</div></div></div>';
+    html+='<div style="height:5px;background:#ffffff80;border-radius:99px;overflow:hidden;margin-bottom:10px"><div style="width:'+p.conf+'%;height:100%;background:'+cc+';border-radius:99px"></div></div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
+    [{d:'5天後',e:p.e5,w:p.w5},{d:'10天後',e:p.e10,w:p.w10},{d:'20天後',e:p.e20,w:p.w20}].forEach(function(h){var wc=h.w>=65?'#16a34a':h.w>=50?'#d97706':'#dc2626';html+='<div style="background:#fff;border-radius:8px;padding:8px 6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">'+h.d+'</div><div style="font-size:13px;font-weight:900;color:'+pBd+'">'+h.e+'</div><div style="font-size:9px;font-weight:700;color:'+wc+'">勝率'+h.w+'%</div></div>';});
+    html+='</div>';
+    if(bt&&bt.top&&bt.top.length){html+='<div style="margin-top:10px"><div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:6px">📖 最相似歷史案例</div>';bt.top.forEach(function(c){var r=c.f10!==null?c.f10:c.f5;if(r===null)return;var rc=r>0?'#16a34a':'#dc2626';html+='<div style="display:flex;gap:7px;padding:7px 9px;background:#fff;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:4px"><div style="font-size:9px;color:#94a3b8;flex-shrink:0;min-width:50px">'+c.date+'</div><div style="flex:1;font-size:9px;color:#64748b">相似度 <strong style="color:#0f172a">'+Math.round(c.sim*100)+'%</strong></div><div style="font-size:12px;font-weight:900;color:'+rc+'">'+(r>0?'+':'')+r.toFixed(1)+'%</div></div>';});html+='</div>';}
+    html+='</div>';
+  }
+
+  // Factor resonance
+  var mc=fr.matchCount>=5?'#10b981':fr.matchCount>=4?'#22c55e':fr.matchCount>=3?'#f59e0b':'#94a3b8';
+  html+='<div style="background:#f8fafc;border-radius:13px;padding:13px;margin-bottom:10px;border:1px solid #e2e8f0">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:10px;font-weight:700;color:#64748b">⚡ 因子共振分析</div><div style="font-size:11px;font-weight:900;color:'+mc+'">'+fr.matchCount+'/6因子 · 勝率'+fr.winRate+'%</div></div>';
+  fr.factors.forEach(function(f){
+    var on=f.match;
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px">'+(on?'✅':'⬜')+'</span><span style="font-size:11px;color:#475569">'+f.name+'</span>';
+    for(var k=0;k<f.stars;k++)html+='⭐';
+    html+='</div><div style="text-align:right"><div style="font-size:10px;font-weight:700;color:'+(on?'#16a34a':'#94a3b8')+'">'+f.desc+'</div>'+(on?'<div style="font-size:9px;color:#16a34a">'+f.win+'</div>':'')+'</div></div>';
+  });
+  html+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><span style="font-size:10px;color:#64748b">基礎評分 '+fr.raw+' + 因子加成 <strong style="color:#16a34a">+'+fr.bonus+'</strong></span><span style="font-size:10px;font-weight:900;color:'+mc+'">共振評分 '+fr.score+'分</span></div>';
+  html+='</div>';
+
+  // Operation plan
+  html+='<div style="background:'+(isBuy?'#f0fdf4':isSell?'#fff1f2':'#fffbeb')+';border:1.5px solid '+s.grade.border+';border-radius:13px;padding:13px;margin-bottom:10px">';
+  html+='<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:'+s.grade.color+';margin-bottom:9px">'+(isBuy?'💡 操作建議':isSell?'⚠️ 出場建議':'👁 觀察計劃')+'</div>';
+  if(isBuy){
+    html+='<div style="margin-bottom:9px"><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:5px">分批建倉策略</div>';
+    [{p:40,price:bp,lbl:'第一批 40%',note:'現價附近進場'},{p:35,price:(bp*0.97).toFixed(1),lbl:'第二批 35%',note:'回測支撐加碼'},{p:25,price:(bp*0.94).toFixed(1),lbl:'第三批 25%',note:'止跌反彈再補'}].forEach(function(b){html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 9px;background:#fff;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:4px"><div><div style="font-size:10px;font-weight:700">'+b.lbl+'</div><div style="font-size:9px;color:#94a3b8">'+b.note+'</div></div><div class="mono" style="font-size:11px;font-weight:700;color:#16a34a">'+cur+b.price+'</div></div>';});
+    html+='</div><div class="g2" style="margin-bottom:7px"><div class="pbox" style="background:#f0fdf4;border-color:#bbf7d0"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">🎯 目標價</div><div class="mono" style="font-size:14px;font-weight:900;color:#16a34a">'+fmt(s,s.target)+'</div><div style="font-size:9px;color:#16a34a">+'+rew+'%</div></div><div class="pbox" style="background:#fff1f2;border-color:#fecaca"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">🛡 停損價</div><div class="mono" style="font-size:14px;font-weight:900;color:#dc2626">'+cur+sl+'</div><div style="font-size:9px;color:#dc2626">-'+rsk+'%</div></div></div>';
+    html+='<div class="g3"><div class="pbox"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">報酬風險</div><div style="font-size:14px;font-weight:900;color:'+(parseFloat(rr)>=2?'#16a34a':'#f59e0b')+'">'+rr+'x</div></div><div class="pbox"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">持有天數</div><div style="font-size:14px;font-weight:900;color:#475569">'+hd+'天</div></div><div class="pbox"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">預估出場</div><div style="font-size:10px;font-weight:700;color:#475569">'+sds+'</div></div></div>';
+  } else {html+='<div class="pbox" style="background:#fff1f2;border-color:#fecaca;padding:11px"><div style="font-size:8px;color:#94a3b8;margin-bottom:2px">📤 建議出場</div><div class="mono" style="font-size:12px;font-weight:900;color:#dc2626">現價 '+fmt(s,s.price)+' 以下出場</div><div style="font-size:9px;color:#dc2626;margin-top:2px">目標 '+fmt(s,s.target)+' · -'+Math.abs(rew)+'%</div></div>';}
+  html+='</div>';
+
+  // Indicators mini
+  var fr3=factorResonance(s),enh4=fr3.enhanced;
+  // Enhanced score breakdown card
+  html+='<div style="background:#f8fafc;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #e2e8f0">';
+  html+='<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:8px">🔬 多因子綜合評分拆解</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:9px">';
+  // RS
+  html+='<div style="background:#fff;border-radius:9px;padding:9px;border:1px solid #e2e8f0"><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">📈 相對強弱 RS</div><div style="font-size:16px;font-weight:900;color:'+enh4.rsGrade.color+'">'+enh4.rsGrade.label+' ('+enh4.rs+')</div><div style="font-size:9px;color:#64748b">超越大盤表現</div></div>';
+  // Sector
+  var ss2=getSectorStrength(s.sector);
+  html+='<div style="background:#fff;border-radius:9px;padding:9px;border:1px solid #e2e8f0"><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">🏭 產業輪動</div><div style="font-size:13px;font-weight:900;color:'+ss2.color+'">Rank '+ss2.rank+' '+ss2.flow+'</div><div style="font-size:9px;color:#64748b">'+s.sector+' '+ss2.mom+'</div></div>';
+  // Fundamental
+  var ff2=getFundamental(s.symbol);
+  var fCol=ff2.epsG>=25?'#16a34a':ff2.epsG>=10?'#d97706':'#dc2626';
+  html+='<div style="background:#fff;border-radius:9px;padding:9px;border:1px solid #e2e8f0"><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">💰 財報加速因子</div><div style="font-size:13px;font-weight:900;color:'+fCol+'">EPS '+\(ff2.epsG>0?'+':'')+ff2.epsG+'%</div><div style="font-size:9px;color:#64748b">營收'+\(ff2.revG>0?'+':'')+ff2.revG+'% · 連'+ff2.consec+'季'+\(ff2.accel?'⚡加速':'穩定')+'</div></div>';
+  // Chip
+  var cd3=getChipData(s.symbol);
+  var cCol=cd3.buyRatio>=10?'#16a34a':cd3.buyRatio>=5?'#d97706':'#dc2626';
+  html+='<div style="background:#fff;border-radius:9px;padding:9px;border:1px solid #e2e8f0"><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">🎯 籌碼佔比</div><div style="font-size:13px;font-weight:900;color:'+cCol+'">買超佔比 '+cd3.buyRatio+'%</div><div style="font-size:9px;color:#64748b">機構'+cd3.instTotal+'% · '+\(cd3.shortCover?'融券回補潛力':'融資'+\(cd3.marginSpeed==='fast'?'急增⚠':'正常'\)\)\)+'</div></div>';
+  html+='</div>';
+  // Score breakdown bar
+  html+='<div style="font-size:9px;color:#94a3b8;margin-bottom:5px">評分組成 (基礎'+enh4.base+' +產業'+\(enh4.secBonus>=0?'+':'')+enh4.secBonus+' +財報'+\(enh4.fundScore>=0?'+':'')+enh4.fundScore+' +籌碼'+\(enh4.chipScore>=0?'+':'')+enh4.chipScore+' +法說'+\(enh4.eiBonus>=0?'+':'')+enh4.eiBonus+' = '+fr3.score+'分)</div>';
+  html+='<div style="display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden">';
+  enh4.breakdown.forEach(function(b){var pct=Math.max(0,(b.val+10)/120*100);if(pct>0)html+='<div style="width:'+pct+'%;background:'+b.color+'" title="'+b.name+'"></div>';});
+  html+='</div></div>';
+
+  var inds=[
+    {l:'MACD',v:s.macd>0?'多頭':'空頭',sc:s.macd>8?10:s.macd>3?7:s.macd>0?4:1,max:10,c:s.macd>0?'#16a34a':'#dc2626'},
+    {l:'RSI',v:s.rsi,sc:s.rsi>=50&&s.rsi<=65?8:s.rsi>=40?5:6,max:8,c:'#16a34a'},
+    {l:'KD',v:s.kd_k>s.kd_d?'黃金叉':'死亡叉',sc:s.kd_k>s.kd_d&&s.kd_k<80?8:3,max:8,c:s.kd_k>s.kd_d?'#16a34a':'#dc2626'},
+    {l:'外資',v:'連'+Math.abs(s.fd)+'日'+(s.fd>0?'買超':'賣超'),sc:s.fd>=5?12:s.fd>=3?9:s.fd>=1?6:3,max:12,c:s.fd>0?'#16a34a':'#dc2626'},
+    {l:'投信',v:'連'+Math.abs(s.td)+'日'+(s.td>0?'買超':'賣超'),sc:s.td>=5?10:s.td>=3?7:s.td>=1?4:2,max:10,c:s.td>0?'#16a34a':'#dc2626'},
+    {l:'融資率',v:s.margin+'%',sc:s.margin<20?8:s.margin<30?6:3,max:8,c:s.margin<25?'#16a34a':'#f59e0b'},
+  ];
+  html+='<div style="background:#fff;border-radius:13px;padding:12px;margin-bottom:10px;border:1px solid #e2e8f0"><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:8px">📊 指標 ('+s.score+'/100)</div>';
+  inds.forEach(function(i){html+='<div class="indr"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span style="color:#64748b">'+i.l+'</span><div style="display:flex;gap:7px"><span style="font-weight:700;color:'+i.c+'">'+i.v+'</span><span class="mono" style="font-weight:900;color:'+i.c+'">'+i.sc+'/'+i.max+'</span></div></div><div class="cbar"><div class="cfill" style="width:'+(i.sc/i.max*100)+'%;background:'+i.c+'"></div></div></div>';});
+  html+='</div>';
+
+  html+='<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px">'+(s.grade.rank>=4?'✅ 買入理由':s.grade.rank<=2?'❌ 賣出理由':'⚠️ 觀察')+'</div>';
+  s.reasons.forEach(function(r,i){html+='<div class="reason" style="background:'+(s.grade.rank>=4?'#f0fdf4':s.grade.rank<=2?'#fff1f2':'#fffbeb')+'"><span style="font-weight:800;color:'+s.grade.color+';flex-shrink:0">'+(i+1)+'</span><span>'+r+'</span></div>';});
+  html+='</div>';
+  html+='<div class="nbox"><div style="font-size:9px;font-weight:700;color:#2563eb;margin-bottom:3px">📰 新聞佐證</div><div style="font-size:11px;color:#1e3a5f;line-height:1.6;margin-bottom:3px">'+s.news+'</div><div style="font-size:9px;color:#60a5fa">來源：'+s.src+'</div></div>';
+  html+='<div class="rbox"><span>⚠️</span><div><div style="font-size:9px;font-weight:700;color:#92400e;margin-bottom:2px">風險提示</div><div style="font-size:10px;color:#78716c">'+s.risk+'</div></div></div>';
+  document.getElementById('mbody').innerHTML=html;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeBg(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+
+// Push
+function addN(n){
+  var id=++S.nid,now=new Date(),t=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  var sc=n.gk==='strong_buy'?90:n.gk==='buy'?70:40;var g=getGrade(sc);
+  S.notifs=[].concat(S.notifs,[Object.assign({},n,{id:id,time:t,grade:g})]).slice(-3);
+  document.getElementById('pp').innerHTML=S.notifs.map(function(n){return'<div class="pc" style="border-color:'+n.grade.border+';border-left-color:'+n.grade.color+'"><div style="display:flex;justify-content:space-between"><div style="flex:1"><div style="display:flex;gap:4px;align-items:center;margin-bottom:3px"><span style="font-size:9px;padding:1px 5px;border-radius:99px;font-weight:700;background:'+(n.market==='tw'?'#dbeafe':'#fce7f3')+';color:'+(n.market==='tw'?'#1d4ed8':'#9d174d')+'">'+(n.market==='tw'?'🇹🇼':'🇺🇸')+'</span><span style="font-size:9px;color:#94a3b8">'+n.time+'</span></div><div style="display:flex;gap:4px;align-items:center;margin-bottom:2px"><span class="mono" style="font-weight:800;font-size:12px">'+n.symbol+'</span>'+bdg(n.grade)+'</div><div style="font-size:10px;color:#64748b">'+n.msg+'</div></div><button style="background:none;color:#cbd5e1;font-size:16px" onclick="S.notifs=S.notifs.filter(function(x){return x.id!=='+n.id+'});document.getElementById(\'pp\').innerHTML=\'\'">×</button></div></div>';}).join('');
+}
+
+var lastPriceUpdate=null;var refreshTimer=null;var refreshCountdown=120;var isRefreshing=false;
+
+function updateClock(){
+  var now=new Date();
+  document.getElementById('cdate').textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('ctime').textContent=now.toLocaleTimeString('zh-TW',{hour12:false});
+}
+
+function updateLupd(){
+  var el=document.getElementById('lupd');
+  if(!el)return;
+  if(!lastPriceUpdate){el.innerHTML='<span style="font-size:9px;color:#475569">尚未更新</span>';return;}
+  var now=new Date();
+  var diff=Math.floor((now-lastPriceUpdate)/1000);
+  var secAgo=diff<60?diff+'秒前':Math.floor(diff/60)+'分'+diff%60+'秒前';
+  var dotCol=diff<30?'#22c55e':diff<120?'#f59e0b':'#ef4444';
+  var cdStr=isRefreshing?'更新中...':'下次更新 '+refreshCountdown+'秒';
+  el.innerHTML=
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">'
+    +'<div style="display:flex;align-items:center;gap:4px">'
+    +'<span style="display:inline-block;width:6px;height:6px;border-radius:99px;background:'+dotCol+';animation:'+(diff<30?'blink 2s infinite':'none')+'"></span>'
+    +'<span style="font-size:9px;font-weight:700;color:'+dotCol+'">股價更新 '+secAgo+'</span>'
+    +'</div>'
+    +'<div style="font-size:8px;color:#334155">'+cdStr+' · Yahoo Finance 15min延遲</div>'
+    +'</div>';
+}
+
+async function refreshPricesOnly(){
+  if(isRefreshing)return;
+  isRefreshing=true;
+  updateLupd();
+  var all=DB.tw.concat(DB.us);
+  for(var i=0;i<all.length;i+=5){
+    var b=all.slice(i,Math.min(i+5,all.length));
+    await Promise.all(b.map(async function(s){
+      var r=await fetchP(s.yS);
+      if(r&&r.price>0){
+        s.price=r.price;s.change=r.change;s.live=true;
+        // 更新 STOCKS 陣列裡的對應項
+        ['tw','us'].forEach(function(m){
+          var idx=STOCKS[m].findIndex(function(x){return x.symbol===s.symbol;});
+          if(idx>=0){
+            STOCKS[m][idx].price=r.price;
+            STOCKS[m][idx].change=r.change;
+            STOCKS[m][idx].live=true;
+            var dims=calcDimensions(STOCKS[m][idx]);
+            STOCKS[m][idx].dims=dims;
+            STOCKS[m][idx].score=dims.total;
+            STOCKS[m][idx].grade=getGrade(dims.total);
+            calcLevels(STOCKS[m][idx]);
+          }
+        });
+      }
+    }));
+  }
+  lastPriceUpdate=new Date();
+  isRefreshing=false;
+  refreshCountdown=120;
+  updateLupd();
+  render();
+}
+
+function startRefreshTimer(){
+  setInterval(function(){
+    if(isRefreshing)return;
+    refreshCountdown--;
+    if(refreshCountdown<=0){
+      refreshCountdown=120;
+      refreshPricesOnly();
+    }
+    updateLupd();
+  },1000);
+}
+function render(){
+  if(!STOCKS[S.market]||!STOCKS[S.market].length)return;
+  var a=document.getElementById('app');
+  if(S.page==='picks')a.innerHTML=renderPicks();
+  else if(S.page==='dimension')a.innerHTML=renderDimension();
+  else if(S.page==='predict')a.innerHTML=renderPredict();
+  else if(S.page==='sector')a.innerHTML=renderSector();
+  else if(S.page==='factor')a.innerHTML=renderFactor();
+  else if(S.page==='operation')a.innerHTML=renderOperation();
+  else a.innerHTML=renderEarnings();
+}
+function setPage(p){S.page=p;document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',['picks','predict','factor','operation','earnings'][i]===p);});render();}
+function setMkt(m){S.market=m;render();}
+function setFilter(f){S.filter=S.filter===f?'all':f;render();}
+function toggleSort(){S.sort=S.sort==='score'?'change':'score';render();}
+
+updateClock();setInterval(updateClock,1000);setInterval(updateLupd,1000);
+loadAll().then(function(){startRefreshTimer();
+  setTimeout(function(){var p=PRED['2330'];addN({market:'tw',symbol:'2330',name:'台積電',gk:'strong_buy',msg:'回測完成 · 10天勝率 '+(p?p.w10+'%':'計算中')});},2500);
+  setTimeout(function(){var p=PRED['NVDA'];addN({market:'us',symbol:'NVDA',name:'輝達',gk:'strong_buy',msg:'回測完成 · 10天勝率 '+(p?p.w10+'%':'計算中')});},5500);
+});
+</script>
+
+<!-- PWA Service Worker & Install Banner -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99998;padding:12px 16px;background:#0f172a;border-top:2px solid #22c55e;animation:slideUp2 0.4s ease">
+  <div style="max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#fff">📲 加入主畫面</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px">像 App 一樣使用，支援離線瀏覽</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button onclick="installPWA()" style="background:#22c55e;color:#0f172a;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer">安裝</button>
+      <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:#1e293b;color:#64748b;border:none;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUANTEX v3 - forced cache bust -->
+<!-- iOS Install Guide -->
+<div id="ios-guide" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99998;padding:16px;background:#0f172a;border-top:2px solid #3b82f6;animation:slideUp2 0.4s ease">
+  <div style="max-width:640px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;color:#fff">📲 加入主畫面變成 App</div>
+      <button onclick="document.getElementById('ios-guide').style.display='none'" style="background:#1e293b;color:#64748b;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">✕ 關閉</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:10px;align-items:center;padding:10px;background:#1e293b;border-radius:10px">
+        <div style="font-size:22px;flex-shrink:0">1️⃣</div>
+        <div><div style="font-size:12px;font-weight:700;color:#fff">點底部「分享」按鈕</div><div style="font-size:10px;color:#64748b">Safari 底部工具列中間的 □↑ 圖示</div></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;padding:10px;background:#1e293b;border-radius:10px">
+        <div style="font-size:22px;flex-shrink:0">2️⃣</div>
+        <div><div style="font-size:12px;font-weight:700;color:#fff">選「加入主畫面」</div><div style="font-size:10px;color:#64748b">向下捲動找到「加入主畫面」選項</div></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;padding:10px;background:#1e293b;border-radius:10px">
+        <div style="font-size:22px;flex-shrink:0">3️⃣</div>
+        <div><div style="font-size:12px;font-weight:700;color:#fff">點右上角「新增」</div><div style="font-size:10px;color:#64748b">桌面就會出現 QUANTEX 圖示</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes slideUp2{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* Safe area for notch phones */
+#hdr{padding-top:calc(12px + env(safe-area-inset-top));}
+#app{padding-bottom:calc(70px + env(safe-area-inset-bottom));}
+#pwa-banner,#ios-guide{padding-bottom:calc(12px + env(safe-area-inset-bottom));}
+</style>
+
+<script>
+// PWA Install
+var deferredPrompt=null;
+var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+var isInStandaloneMode=('standalone' in window.navigator)&&window.navigator.standalone;
+var isAndroid=/Android/.test(navigator.userAgent);
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  setTimeout(function(){document.getElementById('pwa-banner').style.display='block';},3000);
+});
+
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(){deferredPrompt=null;document.getElementById('pwa-banner').style.display='none';});
+  }
+}
+
+// Show iOS guide if on Safari iOS and not already installed
+if(isIOS&&!isInStandaloneMode){
+  setTimeout(function(){document.getElementById('ios-guide').style.display='block';},2500);
+}
+
+// 強制清除所有 Service Worker 和快取
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(reg){
+      reg.unregister();
+      console.log('SW unregistered');
+    });
+  });
+}
+if(window.caches){
+  caches.keys().then(function(keys){
+    keys.forEach(function(k){
+      caches.delete(k);
+      console.log('Cache deleted:',k);
+    });
+  });
+}
+// 不再使用 Service Worker，避免快取問題
+</script>
+
+</body>
+</html>
