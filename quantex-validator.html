@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUANTEX Validator — Regime + WF Backtest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<script src="quantex-optimizer.js"></script>
+<style>
+  :root {
+    --bg: #06080f;
+    --bg-grad: radial-gradient(1200px 700px at 80% -10%, #0d1428 0%, #06080f 50%);
+    --card: #0c1220;
+    --card-hi: #131a2e;
+    --border: #1e2942;
+    --text: #d8e0f0;
+    --muted: #6b7a96;
+    --green: #4ade80;
+    --green-dim: #16a34a22;
+    --red: #f87171;
+    --red-dim: #dc262622;
+    --amber: #fbbf24;
+    --amber-dim: #d9770622;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background: var(--bg);
+    background-image: var(--bg-grad);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* Header */
+  .hdr { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .hdr h1 {
+    font-family: 'Major Mono Display', monospace;
+    font-size: clamp(20px, 5vw, 32px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .hdr h1 span { color: var(--green); }
+  .hdr-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); text-align: right; }
+  .hdr-meta b { color: var(--text); }
+
+  /* Section */
+  .sec { margin-bottom: 28px; }
+  .sec-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-title::before {
+    content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 1px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 600px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Regime card */
+  .regime-card { position: relative; overflow: hidden; }
+  .regime-card .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .regime-card .name {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+  .regime-card .reg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    letter-spacing: 0.05em;
+  }
+  .reg.bull { background: var(--green-dim); color: var(--green); border: 1px solid #16a34a44; }
+  .reg.bear { background: var(--red-dim); color: var(--red); border: 1px solid #dc262644; }
+  .reg.range { background: #64748b22; color: #cbd5e1; border: 1px solid #64748b44; }
+  .reg.high_vol { background: var(--amber-dim); color: var(--amber); border: 1px solid #d9770644; }
+  .reg.recovery, .reg.distribution, .reg.transition { background: #c084fc22; color: var(--purple); border: 1px solid #c084fc44; }
+  .reg.unknown { background: #1e293b; color: var(--muted); }
+
+  .regime-card .metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    margin-top: 12px;
+  }
+  .regime-card .metric {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+  }
+  .regime-card .metric .k {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .regime-card .metric .v {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .v.pos { color: var(--green); }
+  .v.neg { color: var(--red); }
+
+  /* Strategy box */
+  .strat {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(74, 222, 128, 0.04);
+    border-left: 2px solid var(--green);
+    border-radius: 0 4px 4px 0;
+  }
+  .strat .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .strat .v { font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+  /* Backtest runner */
+  .bt-controls { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 12px; }
+  .bt-input {
+    background: var(--card-hi);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    outline: none;
+  }
+  .bt-input:focus { border-color: var(--green); }
+  .btn {
+    background: var(--green);
+    color: #06080f;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: #6ee7a8; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--green); background: transparent; }
+
+  /* Progress */
+  .prog {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    margin: 8px 0 4px;
+  }
+  .prog-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+  .prog-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* Results */
+  .stat-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin: 12px 0;
+  }
+  .stat-strip .stat {
+    background: var(--card-hi);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+  }
+  .stat .k {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+  }
+  .stat .v {
+    font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700;
+    margin-top: 4px; line-height: 1;
+  }
+  .stat .v.green { color: var(--green); }
+  .stat .v.red { color: var(--red); }
+  .stat .v.amber { color: var(--amber); }
+  @media (max-width: 600px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } .stat .v { font-size: 18px; } }
+
+  /* Regime breakdown table */
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td {
+    text-align: left; padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; }
+  td.num { text-align: right; }
+  td.pos { color: var(--green); }
+  td.neg { color: var(--red); }
+  tr:hover { background: rgba(255,255,255,0.015); }
+
+  /* Logs */
+  .log {
+    background: #02040a;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+  .log .ok { color: var(--green); }
+  .log .err { color: var(--red); }
+
+  /* Footer */
+  .ftr {
+    margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  }
+  .pill {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 6px 10px; border-radius: 4px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="hdr">
+    <h1>quan<span>tex</span> validator</h1>
+    <div class="hdr-meta">
+      <div>walk-forward + regime engine</div>
+      <div><b id="ver">v2.0</b> · OOS records: <b id="oos-count">0</b></div>
+    </div>
+  </header>
+
+  <!-- Market Regime -->
+  <section class="sec">
+    <div class="sec-title">market regime</div>
+    <div class="grid-2">
+      <div id="tw-card" class="card regime-card">
+        <div class="label">TW · 0050.TW</div>
+        <div class="name">台股加權</div>
+        <span id="tw-reg" class="reg unknown">LOADING</span>
+        <div id="tw-metrics" class="metrics"></div>
+        <div id="tw-strat" class="strat" style="display:none">
+          <div class="lbl">建議策略</div>
+          <div class="v" id="tw-strat-v">—</div>
+        </div>
+      </div>
+      <div id="us-card" class="card regime-card">
+        <div class="label">US · SPY</div>
+        <div class="name">S&P 500</div>
+        <span id="us-reg" class="reg unknown">LOADING</span>
+        <div id="us-metrics" class="metrics"></div>
+        <div id="us-strat" class="strat" style="display:none">
+          <div class="lbl">建議策略</div>
+          <div class="v" id="us-strat-v">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-Year Walk-Forward -->
+  <section class="sec">
+    <div class="sec-title">walk-forward backtest (5 year, purged)</div>
+    <div class="card">
+      <div class="bt-controls">
+        <input id="symbols-input" class="bt-input" placeholder="2330.TW, 2454.TW, NVDA, AAPL (留空 = 用台股代表 10 支)" value="" />
+        <button id="run-btn" class="btn" onclick="runValidation()">RUN</button>
+      </div>
+      <div class="prog"><div id="prog-fill" class="prog-fill" style="width:0"></div></div>
+      <div class="prog-text" id="prog-text">就緒。輸入股票代碼後按 RUN,將拉 5 年歷史並用 purged walk-forward 驗證。</div>
+
+      <div id="results" style="display:none">
+        <div class="stat-strip">
+          <div class="stat"><div class="k">Total Folds</div><div class="v" id="r-n">—</div></div>
+          <div class="stat"><div class="k">Accuracy</div><div class="v green" id="r-acc">—</div></div>
+          <div class="stat"><div class="k">Avg Return</div><div class="v amber" id="r-ret">—</div></div>
+          <div class="stat"><div class="k">Sharpe</div><div class="v" id="r-sh">—</div></div>
+        </div>
+        <div style="margin-top:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">accuracy by regime</div>
+          <table id="regime-table"></table>
+        </div>
+        <div style="margin-top:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">per-stock results</div>
+          <table id="stock-table"></table>
+        </div>
+      </div>
+
+      <div id="log" class="log" style="display:none"></div>
+    </div>
+  </section>
+
+  <!-- OOS Browser -->
+  <section class="sec">
+    <div class="sec-title">oos calibration browser</div>
+    <div class="card">
+      <div id="oos-browser" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)">
+        尚無 OOS 資料。執行 walk-forward 回測後此處會顯示每支股票在各 regime 下的校準結果。
+      </div>
+    </div>
+  </section>
+
+  <footer class="ftr">
+    <button class="btn btn-ghost" onclick="exportOOS()">EXPORT OOS</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('imp').click()">IMPORT OOS</button>
+    <button class="btn btn-ghost" onclick="if(confirm('清除所有 OOS 紀錄?'))resetOOS()">RESET OOS</button>
+    <input type="file" id="imp" style="display:none" onchange="importOOS(event)" accept=".json">
+    <span class="pill">QuantexOpt <span id="ver-ftr">v2.0</span></span>
+  </footer>
+</div>
+
+<script>
+const WORKER = 'https://quantex-api.d20uvio.workers.dev';
+
+// 台股代表 10 支(若使用者沒輸入)
+const DEFAULT_TW = ['2330.TW','2454.TW','2317.TW','2308.TW','2412.TW','3008.TW','1303.TW','2882.TW','2891.TW','3017.TW'];
+
+// ── 工具函式 ─────────────────────────────────
+function $(id){ return document.getElementById(id); }
+function fmt(n, d=2){ return n==null||isNaN(n) ? '—' : (+n).toFixed(d); }
+function fmtPct(n){ return n==null||isNaN(n) ? '—' : (n>=0?'+':'') + (+n).toFixed(2) + '%'; }
+function logLine(msg, cls=''){
+  const el = $('log');
+  el.style.display = 'block';
+  const t = new Date().toTimeString().slice(0,8);
+  el.innerHTML += `<div class="${cls}">[${t}] ${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+function setProg(pct, text){
+  $('prog-fill').style.width = pct + '%';
+  if(text) $('prog-text').textContent = text;
+}
+
+// ── 載入大盤資料並偵測 regime ──────────────────
+async function loadMarketRegime(symbol, side){
+  try {
+    const res = await fetch(`${WORKER}/yahoo-history?symbol=${encodeURIComponent(symbol)}`);
+    const data = await res.json();
+    if(!data.hist || !data.hist.length) throw new Error('no data');
+
+    const mr = QuantexOpt.detectMarketRegime(data.hist);
+    const sk = QuantexOpt.regimeKey(mr.regime, 'NEUTRAL');
+    const strat = QuantexOpt.selectStrategy(sk);
+
+    const regClass = mr.regime.toLowerCase();
+    $(`${side}-reg`).className = `reg ${regClass}`;
+    $(`${side}-reg`).textContent = mr.regime + ' · conf ' + Math.round(mr.confidence*100) + '%';
+
+    const m = mr.metrics;
+    const ma200Cls = m.ma200Dist >= 0 ? 'pos' : 'neg';
+    const mom20Cls = m.mom20 >= 0 ? 'pos' : 'neg';
+    const volCls = m.volRatio > 1.3 ? 'neg' : 'pos';
+    $(`${side}-metrics`).innerHTML = `
+      <div class="metric"><div class="k">MA200 dist</div><div class="v ${ma200Cls}">${fmtPct(m.ma200Dist*100)}</div></div>
+      <div class="metric"><div class="k">Mom 20D</div><div class="v ${mom20Cls}">${fmtPct(m.mom20*100)}</div></div>
+      <div class="metric"><div class="k">Vol ratio</div><div class="v ${volCls}">${fmt(m.volRatio,2)}×</div></div>
+    `;
+
+    $(`${side}-strat`).style.display = 'block';
+    $(`${side}-strat-v`).textContent = `${strat.primary.toUpperCase()} · max ${(strat.maxExposure*100).toFixed(0)}% · minWR ${strat.minWR}%`;
+
+    return {hist: data.hist, regime: mr};
+  } catch(e) {
+    $(`${side}-reg`).textContent = 'ERROR';
+    return null;
+  }
+}
+
+// ── 取得單一股票 5 年歷史 ──────────────────
+async function fetchHist(symbol){
+  const res = await fetch(`${WORKER}/yahoo-history?symbol=${encodeURIComponent(symbol)}`);
+  const data = await res.json();
+  if(!data.hist || data.hist.length < 300) throw new Error(`資料不足 (${symbol})`);
+  // 限制為最近 5 年(約 1260 個交易日)
+  return data.hist.slice(-1260);
+}
+
+// ── Mini runBacktest:精簡版,給驗證用 ──────────
+// 完整版在你的 quantex-pro.html 裡;這邊用簡化版確保結果一致性
+function miniBacktest(hist){
+  if(!hist || hist.length < 50) return null;
+  const closes = hist.map(h => h.c);
+  const n = closes.length;
+
+  // 計算 ADX(用 high/low 若有,否則用 close*1.005/0.995 近似)
+  function calcADX(){
+    if(n < 28) return 25;
+    let dms = [];
+    for(let i = 1; i < Math.min(30, n); i++){
+      const idx = n - i;
+      const hi = hist[idx].h || closes[idx]*1.005;
+      const li = hist[idx].l || closes[idx]*0.995;
+      const phi = hist[idx-1].h || closes[idx-1]*1.005;
+      const pli = hist[idx-1].l || closes[idx-1]*0.995;
+      const pc = closes[idx-1];
+      const tr = Math.max(hi-li, Math.abs(hi-pc), Math.abs(li-pc));
+      const dmp = hi - phi, dmm = pli - li;
+      dms.push({p: dmp>dmm && dmp>0 ? dmp : 0, m: dmm>dmp && dmm>0 ? dmm : 0, tr});
+    }
+    const atr = dms.reduce((a,d)=>a+d.tr,0)/dms.length || 1;
+    const dip = dms.reduce((a,d)=>a+d.p,0)/atr/dms.length*100;
+    const dim = dms.reduce((a,d)=>a+d.m,0)/atr/dms.length*100;
+    return Math.min(100, Math.round(Math.abs(dip-dim)/(dip+dim+0.001)*100));
+  }
+
+  // Pattern matching:當前 20 日序列找歷史相似日,看接下來 10 日表現
+  const curWindow = closes.slice(-20);
+  const matches = [];
+  for(let i = 30; i < n - 10; i++){
+    const histWindow = closes.slice(i-20, i);
+    let sim = 0;
+    for(let j = 0; j < 20; j++){
+      const a = (curWindow[j] / curWindow[0] - 1);
+      const b = (histWindow[j] / histWindow[0] - 1);
+      sim += 1 - Math.abs(a - b);
+    }
+    sim = sim / 20 * 100;
+    if(sim < 50) continue;
+    const f10 = (closes[i+9] - closes[i-1]) / closes[i-1] * 100;
+    matches.push({sim, f10});
+  }
+  if(matches.length < 8) return null;
+
+  const wins = matches.filter(m => m.f10 > 0).length;
+  const wr = Math.round(wins / matches.length * 100);
+  const avg = matches.reduce((a,m)=>a+m.f10,0) / matches.length;
+  const sd = Math.sqrt(matches.reduce((a,m)=>a+Math.pow(m.f10-avg,2),0) / matches.length);
+
+  return {
+    s10: {wr, avg: +avg.toFixed(2), std: +sd.toFixed(2), n: matches.length},
+    curADX14: calcADX(),
+    curBBpos: 0.5, curRSI: 50  // 簡化:用中性值,讓 regime gate 主導
+  };
+}
+
+// ── 主驗證流程 ──────────────────────────────
+async function runValidation(){
+  const inp = $('symbols-input').value.trim();
+  const symbols = inp ? inp.split(/[,\s]+/).filter(s=>s) : DEFAULT_TW;
+  if(!symbols.length) return;
+
+  $('run-btn').disabled = true;
+  $('results').style.display = 'none';
+  $('log').innerHTML = '';
+  setProg(0, `啟動 — ${symbols.length} 支股票`);
+  logLine(`開始 5 年 walk-forward 驗證`);
+
+  // 1. 取得大盤資料(供 regime 偵測用)
+  let mktHist = null;
+  try {
+    const isAllUS = symbols.every(s => !s.match(/\.TW$/));
+    const mktSym = isAllUS ? 'SPY' : '0050.TW';
+    const r = await fetch(`${WORKER}/yahoo-history?symbol=${mktSym}`);
+    const d = await r.json();
+    mktHist = d.hist ? d.hist.slice(-1260) : null;
+    logLine(`大盤資料 ${mktSym} ${mktHist?mktHist.length+' bars':'失敗'}`, mktHist?'ok':'err');
+  } catch(e) { logLine(`大盤資料 fetch 失敗: ${e.message}`, 'err'); }
+
+  // 2. 逐支跑 walk-forward
+  const allFolds = [];
+  const stockResults = [];
+  let done = 0;
+
+  for(const sym of symbols){
+    setProg(done/symbols.length*100, `處理 ${sym} (${done+1}/${symbols.length})`);
+    try {
+      const hist = await fetchHist(sym);
+      const wf = QuantexOpt.purgedWalkForward(hist, miniBacktest, mktHist, {
+        trainMin: 250, testDays: 10, purgeDays: 10, stepDays: 21
+      });
+      if(wf.summary){
+        // 把每個 fold 寫入 OOS(用對應 regime)
+        wf.folds.forEach(f => {
+          QuantexOpt.recordOOS(sym, f.regimeKey, f.predicted, f.actual, f.ret);
+        });
+        allFolds.push(...wf.folds.map(f => ({...f, sym})));
+        stockResults.push({sym, ...wf.summary, byRegime: wf.byRegime});
+        logLine(`${sym}: ${wf.summary.n} folds, acc ${wf.summary.accuracy}%, sharpe ${wf.summary.sharpe}`, 'ok');
+      } else {
+        logLine(`${sym}: 樣本不足`, 'err');
+      }
+    } catch(e) {
+      logLine(`${sym} 失敗: ${e.message}`, 'err');
+    }
+    done++;
+  }
+
+  // 3. 彙總顯示
+  setProg(100, `完成 — 共 ${allFolds.length} folds`);
+  if(allFolds.length){
+    renderResults(allFolds, stockResults);
+    renderOOSBrowser();
+  }
+  updateOOSCount();
+  $('run-btn').disabled = false;
+}
+
+function renderResults(folds, perStock){
+  $('results').style.display = 'block';
+  const total = folds.length;
+  const correct = folds.filter(f=>f.correct).length;
+  const acc = Math.round(correct/total*100);
+  const rets = folds.map(f=>f.ret);
+  const meanR = rets.reduce((a,b)=>a+b,0)/rets.length;
+  const sdR = Math.sqrt(rets.reduce((a,r)=>a+Math.pow(r-meanR,2),0)/rets.length);
+  const sharpe = sdR > 0 ? meanR/sdR : 0;
+
+  $('r-n').textContent = total;
+  $('r-acc').textContent = acc + '%';
+  $('r-acc').className = 'v ' + (acc>=55?'green':acc>=50?'amber':'red');
+  $('r-ret').textContent = (meanR>=0?'+':'') + meanR.toFixed(2) + '%';
+  $('r-ret').className = 'v ' + (meanR>=0?'green':'red');
+  $('r-sh').textContent = sharpe.toFixed(2);
+  $('r-sh').className = 'v ' + (sharpe>=1?'green':sharpe>=0.5?'amber':'red');
+
+  // Regime breakdown table
+  const byReg = {};
+  folds.forEach(f => {
+    const k = f.regimeKey;
+    if(!byReg[k]) byReg[k] = {n:0, correct:0, retSum:0};
+    byReg[k].n++;
+    if(f.correct) byReg[k].correct++;
+    byReg[k].retSum += f.ret;
+  });
+  let html = '<thead><tr><th>Regime</th><th class="num">N</th><th class="num">Accuracy</th><th class="num">Avg Ret</th></tr></thead><tbody>';
+  Object.keys(byReg).sort((a,b)=>byReg[b].n - byReg[a].n).forEach(k => {
+    const r = byReg[k];
+    const a = Math.round(r.correct/r.n*100);
+    const ar = r.retSum/r.n;
+    const accCls = a>=55?'pos':a>=50?'':'neg';
+    const retCls = ar>=0?'pos':'neg';
+    html += `<tr><td><b>${k}</b></td><td class="num">${r.n}</td><td class="num ${accCls}">${a}%</td><td class="num ${retCls}">${fmtPct(ar)}</td></tr>`;
+  });
+  html += '</tbody>';
+  $('regime-table').innerHTML = html;
+
+  // Per-stock table
+  let html2 = '<thead><tr><th>Symbol</th><th class="num">Folds</th><th class="num">Acc</th><th class="num">Avg Ret</th><th class="num">Sharpe</th></tr></thead><tbody>';
+  perStock.sort((a,b) => b.accuracy - a.accuracy).forEach(s => {
+    const accCls = s.accuracy>=55?'pos':s.accuracy>=50?'':'neg';
+    const retCls = s.avgReturn>=0?'pos':'neg';
+    const shCls = s.sharpe>=1?'pos':s.sharpe>=0.5?'':'neg';
+    html2 += `<tr><td><b>${s.sym}</b></td><td class="num">${s.n}</td><td class="num ${accCls}">${s.accuracy}%</td><td class="num ${retCls}">${fmtPct(s.avgReturn)}</td><td class="num ${shCls}">${s.sharpe}</td></tr>`;
+  });
+  html2 += '</tbody>';
+  $('stock-table').innerHTML = html2;
+}
+
+function renderOOSBrowser(){
+  const oos = QuantexOpt._getOOS();
+  const syms = Object.keys(oos).sort();
+  if(!syms.length){ $('oos-browser').textContent = '尚無 OOS 資料。'; return; }
+
+  let html = '<table><thead><tr><th>Symbol</th><th>Regime</th><th class="num">N</th><th class="num">WR</th><th class="num">CI 90%</th><th>Level</th></tr></thead><tbody>';
+  syms.forEach(sym => {
+    Object.keys(oos[sym]).forEach(rk => {
+      const conf = QuantexOpt.calibrateConfidence(sym, null, rk);
+      const lvlCls = conf.level==='high'?'pos':conf.level==='low'||conf.level==='none'?'neg':'';
+      html += `<tr><td><b>${sym}</b></td><td>${rk}</td><td class="num">${conf.n}</td><td class="num">${conf.wr}%</td><td class="num">[${conf.ci[0]}-${conf.ci[1]}]</td><td class="${lvlCls}">${conf.level.toUpperCase()}</td></tr>`;
+    });
+  });
+  html += '</tbody></table>';
+  $('oos-browser').innerHTML = html;
+}
+
+function updateOOSCount(){
+  const oos = QuantexOpt._getOOS();
+  let total = 0;
+  Object.values(oos).forEach(s => Object.values(s).forEach(r => total += r.total));
+  $('oos-count').textContent = total;
+}
+
+function exportOOS(){
+  const json = QuantexOpt._exportOOS();
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quantex-oos-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importOOS(ev){
+  const f = ev.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if(QuantexOpt._importOOS(e.target.result)){
+      alert('匯入成功');
+      renderOOSBrowser(); updateOOSCount();
+    } else alert('匯入失敗:格式錯誤');
+  };
+  reader.readAsText(f);
+}
+function resetOOS(){
+  QuantexOpt._resetOOS();
+  renderOOSBrowser(); updateOOSCount();
+}
+
+// ── 啟動 ──────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  $('ver').textContent = QuantexOpt.version;
+  $('ver-ftr').textContent = QuantexOpt.version;
+  updateOOSCount();
+  renderOOSBrowser();
+  await Promise.all([
+    loadMarketRegime('0050.TW', 'tw'),
+    loadMarketRegime('SPY', 'us')
+  ]);
+});
+</script>
+</body>
+</html>
