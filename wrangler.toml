@@ -11,4 +11,4 @@ compatibility_date = "2026-04-29"
 #   4. 把下方 "貼這裡" 換成那個 ID
 [[kv_namespaces]]
 binding = "QUANTEX_KV"
-id = "貼這裡"
+id = "e2d0eedd4f3a46af8acc3f94e03b1f75"
