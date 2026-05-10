@@ -1,0 +1,25 @@
+name = "quantex-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# v2.7: KV 儲存(您的現有 binding 名稱)
+kv_namespaces = [
+  { binding = "QUANTEX_KV", id = "YOUR_KV_NAMESPACE_ID_HERE" }
+]
+
+# v2.7: 環境變數(您 ML_KEY 已設為 Secret,不需在這裡)
+
+# v2.7: Cron Triggers — 雲端自主跑 AutoBT
+# 每 10 分鐘觸發一次,每次處理 3 支
+# KV 寫入估算:144 次/天 × 5 寫(3 結果 + 1 queue + 1 progress) = 720 writes/天
+# 在免費版 1,000 writes/day 限額內安全
+[triggers]
+crons = ["*/10 * * * *"]
+
+# 規模參考:
+# - 預設池 180 支(TW90 + US90)→ 每天能跑完約 432 支(2.4 圈)
+# - 免費版 Workers:100,000 requests/day(夠用)
+# - KV 寫入估算 720/1,000 → 約 72% 額度
+# - 若想跑更快,升級到 paid $5/mo 即可解放(1M writes/day)
+#
+# 若要保守一點(更省 KV):改 [*/15 * * * *] = 480 writes/天
