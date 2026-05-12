@@ -87,13 +87,14 @@ const PICKS_OOS_KEY = 'picks_oos_v1';              // 累積 OOS 樣本
 const PICKS_STATS_KEY = 'picks_stats_v1';          // 累積命中率統計
 
 // v2.8: 監聽的 podcaster 關鍵字(PTT 標題或內文出現任一即抓)
+// v2.13: 大幅擴充關鍵字,提高命中率
 const DAGU_PODCASTERS = [
-  { name: '股癌',         keywords: ['股癌', '謝孟恭', '乾爹', 'gooaye', '孟恭'] },
-  { name: '財經皓角',     keywords: ['游庭皓', '財經皓角', '皓角', '庭皓'] },
-  { name: '老余',         keywords: ['老余', '老余的金融筆記', '余家阿大'] },
+  { name: '股癌',         keywords: ['股癌', '謝孟恭', '乾爹', 'gooaye', 'Gooaye', 'GOOAYE', '孟恭', '孟仔', '恭哥'] },
+  { name: '財經皓角',     keywords: ['游庭皓', '財經皓角', '皓角', '庭皓', '皓哥'] },
+  { name: '老余',         keywords: ['老余', '老余的金融筆記', '余家阿大', '金融筆記'] },
   { name: '矽谷輕鬆談',   keywords: ['矽谷輕鬆談', '矽谷'] },
-  { name: '美股投資家',   keywords: ['美股投資家'] },
-  { name: '財女 Jenny',   keywords: ['財女Jenny', '財女 Jenny', 'Jenny 美股', 'Jenny美股'] },
+  { name: '美股投資家',   keywords: ['美股投資家', 'JC財經'] },
+  { name: '財女 Jenny',   keywords: ['財女Jenny', '財女 Jenny', 'Jenny 美股', 'Jenny美股', '財女'] },
   { name: '美股咖啡館',   keywords: ['美股咖啡館', '咖啡館', '阿巴斯'] },
 ];
 
@@ -140,7 +141,7 @@ export default {
     if (path === '/health') {
       return jsonResponse({
         status: 'ok',
-        version: 'v2.12-market-fix',
+        version: 'v2.13-dagu-deep',
         time: new Date().toISOString(),
         mlAvailable: !!env.QUANTEX_KV,
         syncAvailable: !!env.QUANTEX_KV,
@@ -1671,31 +1672,55 @@ function getTodayTW() {
 
 async function daguScrape(env) {
   try {
-    // 抓 PTT Stock 板索引(最新)— PTT 沒有 over18 cookie 對 Stock 板可正常抓
-    const indexUrl = 'https://www.ptt.cc/bbs/Stock/index.html';
-    const res = await fetch(indexUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; QuantexBot)',
-        'Cookie': 'over18=1'
-      },
-      cf: { cacheTtl: 600 }
-    });
-    if (!res.ok) return { ok: false, error: 'PTT index fetch failed: ' + res.status };
-    const html = await res.text();
-    
-    // 解析文章列表(簡單 regex,PTT HTML 結構穩定)
-    const articleRegex = /<div class="r-ent">[\s\S]*?<div class="title">[\s\S]*?<a href="(\/bbs\/Stock\/M\.\d+\.A\.[A-F0-9]+\.html)">([^<]+)<\/a>[\s\S]*?<div class="nrec">(?:<span[^>]*>([^<]*)<\/span>)?<\/div>[\s\S]*?<div class="author">([^<]+)<\/div>[\s\S]*?<div class="date">\s*([^<]+?)\s*<\/div>/g;
-    
+    // v2.13: 抓 PTT Stock 板「最新 3 頁」(共 ~60 篇)而不是只首頁 20 篇
     const articles = [];
-    let match;
-    while ((match = articleRegex.exec(html)) !== null) {
-      articles.push({
-        url: 'https://www.ptt.cc' + match[1],
-        title: match[2].trim(),
-        push: match[3] ? match[3].trim() : '0',
-        author: match[4].trim(),
-        date: match[5].trim()
-      });
+    let nextPagePath = '/bbs/Stock/index.html';
+    let pagesScraped = 0;
+    let pttFetchFailed = 0;
+    
+    for (let pageNum = 0; pageNum < 3 && nextPagePath; pageNum++) {
+      const pageUrl = 'https://www.ptt.cc' + nextPagePath;
+      try {
+        const res = await fetch(pageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; QuantexBot)',
+            'Cookie': 'over18=1'
+          },
+          cf: { cacheTtl: 600 }
+        });
+        if (!res.ok) {
+          pttFetchFailed++;
+          break;
+        }
+        const html = await res.text();
+        pagesScraped++;
+        
+        // 解析文章列表
+        const articleRegex = /<div class="r-ent">[\s\S]*?<div class="title">[\s\S]*?<a href="(\/bbs\/Stock\/M\.\d+\.A\.[A-F0-9]+\.html)">([^<]+)<\/a>[\s\S]*?<div class="nrec">(?:<span[^>]*>([^<]*)<\/span>)?<\/div>[\s\S]*?<div class="author">([^<]+)<\/div>[\s\S]*?<div class="date">\s*([^<]+?)\s*<\/div>/g;
+        
+        let match;
+        while ((match = articleRegex.exec(html)) !== null) {
+          articles.push({
+            url: 'https://www.ptt.cc' + match[1],
+            title: match[2].trim(),
+            push: match[3] ? match[3].trim() : '0',
+            author: match[4].trim(),
+            date: match[5].trim()
+          });
+        }
+        
+        // 找下一頁(較舊)連結 — PTT 用「‹ 上頁」按鈕
+        // <a class="btn wide" href="/bbs/Stock/index{N}.html">‹ 上頁</a>
+        const prevPageMatch = html.match(/<a class="btn wide" href="(\/bbs\/Stock\/index\d+\.html)">‹\s*上頁<\/a>/);
+        nextPagePath = prevPageMatch ? prevPageMatch[1] : null;
+      } catch(pageErr) {
+        pttFetchFailed++;
+        break;
+      }
+    }
+    
+    if (articles.length === 0) {
+      return { ok: false, error: 'PTT index fetch failed: 抓不到任何文章(已試 ' + pagesScraped + ' 頁)' };
     }
     
     // 過濾:標題符合任一 podcaster 關鍵字
@@ -1710,8 +1735,8 @@ async function daguScrape(env) {
       }
     }
     
-    // 取最近 8 篇,抓內文
-    const recent = matched.slice(0, 8);
+    // v2.13: 取最近 12 篇(從 8 提到 12,抓多一點)
+    const recent = matched.slice(0, 12);
     const withContent = [];
     for (const art of recent) {
       try {
@@ -1761,6 +1786,7 @@ async function daguScrape(env) {
     // 存 KV
     const raw = {
       scrapedAt: Date.now(),
+      pagesScraped,
       totalIndexed: articles.length,
       matched: matched.length,
       withContent: withContent.length,
@@ -1769,7 +1795,7 @@ async function daguScrape(env) {
     // v2.10: KV 寫入加 try-catch(KV limit 時不阻擋大骨完成)
     try {
       await env.QUANTEX_KV.put(DAGU_RAW_KEY, JSON.stringify(raw), { expirationTtl: 7 * 24 * 3600 });
-      await env.QUANTEX_KV.put(DAGU_LASTSCRAPE_KEY, JSON.stringify({ ts: Date.now(), count: withContent.length }));
+      await env.QUANTEX_KV.put(DAGU_LASTSCRAPE_KEY, JSON.stringify({ ts: Date.now(), count: withContent.length, pagesScraped, totalIndexed: articles.length, matched: matched.length }));
     } catch(kvErr) {
       console.warn('[dagu KV write fail]', kvErr.message);
       // 不 throw,仍回傳成功(資料在記憶體還在)
@@ -1778,9 +1804,15 @@ async function daguScrape(env) {
     
     return {
       ok: true,
+      pagesScraped,
       totalIndexed: articles.length,
       matched: matched.length,
       withContent: withContent.length,
+      // v2.13: 如果 matched 為 0,也回顯前 5 篇標題讓用戶診斷
+      diagnosis: matched.length === 0 
+        ? '抓了 ' + articles.length + ' 篇但無 podcaster 相關討論。最新 5 篇標題:' + 
+          articles.slice(0, 5).map(a => a.title).join(' | ')
+        : null,
       sample: withContent.slice(0, 3).map(a => ({ title: a.title, podcaster: a.podcaster, push: a.pushCount }))
     };
   } catch (e) {
