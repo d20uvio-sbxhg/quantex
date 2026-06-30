@@ -342,7 +342,7 @@ export default {
     if (path === '/health') {
       return jsonResponse({
         status: 'ok',
-        version: 'v2.56-names',
+        version: 'v2.57-daily',
         time: new Date().toISOString(),
         mlAvailable: !!env.QUANTEX_KV,
         syncAvailable: !!env.QUANTEX_KV,
@@ -734,6 +734,25 @@ export default {
         if (res.ok && res.count > 0) { snap = res; try { await env.QUANTEX_KV.put('namesnap_v1', JSON.stringify(res)); } catch (e) {} }
       }
       return jsonResponse(snap || { ok: false, names: {} });
+    }
+    if (path === '/daily/snapshot') {
+      // v2.57: 日收盤快照,byStock = { sym: { 'YYYYMMDD': close } }(近3年)
+      const snap = await env.QUANTEX_KV.get('dailysnap_v1', { type: 'json' });
+      return jsonResponse(snap || { ok: false, error: 'not_ready', byStock: {} });
+    }
+    if (path === '/daily/refresh') {
+      // v2.57: 手動分批抓日收盤。?offset=N(一批6檔,日資料較大);反覆開到 done=true
+      try {
+        const off = parseInt(params.get('offset') || '0', 10) || 0;
+        const cur = await env.QUANTEX_KV.get('dailysnap_v1', { type: 'json' });
+        const total = DEFAULT_TW_STOCKS.length;
+        const res = await proxyFinMindDaily(env, off, 6);
+        const merged = (off > 0 && cur && cur.byStock) ? cur.byStock : {};
+        Object.keys(res.byStock).forEach(k => { merged[k] = res.byStock[k]; });
+        const next = off + 6, done = next >= total;
+        await env.QUANTEX_KV.put('dailysnap_v1', JSON.stringify({ ok: true, updatedAt: Date.now(), byStock: merged, stockCount: Object.keys(merged).length, _nextOffset: done ? 0 : next }));
+        return jsonResponse({ ok: true, batchOffset: off, batchGot: res.okStocks, totalStocks: Object.keys(merged).length, nextOffset: done ? 0 : next, done: done, poolTotal: total, tokenSet: !!(env && env.FINMIND_TOKEN), hint: done ? '日收盤全部抓完' : ('還沒完,再開 /daily/refresh?offset=' + next) });
+      } catch (e) { return jsonResponse({ ok: false, error: String(e && e.message || e) }); }
     }
     if (path === '/cloud/picks') {
       // v2.48: 雲端每月自動記錄的前瞻籃子(動能/營收/複合),免開 App
@@ -2740,6 +2759,35 @@ async function proxyFinMindStockInfo(env) {
     rows.forEach(r => { if (r.stock_id && r.stock_name && !names[r.stock_id]) names[r.stock_id] = r.stock_name; });
     return { ok: true, updatedAt: Date.now(), count: Object.keys(names).length, names: names };
   } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
+}
+
+async function proxyFinMindDaily(env, offset, limit) {
+  // v2.57: 逐檔抓日收盤 TaiwanStockPrice(近3年),供配對交易/盤中均值回歸/更快訊號。只存 close 控制大小。
+  const nowD = new Date(Date.now() + 8 * 3600 * 1000);
+  const startDate = (nowD.getFullYear() - 3) + '-01-01';
+  const token = (env && env.FINMIND_TOKEN) ? env.FINMIND_TOKEN : '';
+  const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+  const byStock = {};
+  offset = offset || 0; limit = limit || 6;
+  const pool = DEFAULT_TW_STOCKS.slice(offset, offset + limit);
+  let rateHits = 0, okStocks = 0;
+  for (let pi = 0; pi < pool.length; pi++) {
+    const sym = pool[pi];
+    const url = 'https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice'
+      + '&data_id=' + encodeURIComponent(sym) + '&start_date=' + startDate;
+    try {
+      const resp = await fetch(url, { headers: headers });
+      if (!resp.ok) { if (resp.status === 402 || resp.status === 429) { rateHits++; if (rateHits >= 5) { console.log('[daily] rate stop at', sym); break; } await new Promise(r => setTimeout(r, 1200)); } continue; }
+      rateHits = 0;
+      const j = await resp.json();
+      const rows = (j && j.data) || [];
+      if (!rows.length) continue;
+      const closes = {};
+      rows.forEach(r => { const dt = String(r.date || '').replace(/-/g, ''); const c = parseFloat(r.close); if (dt && isFinite(c) && c > 0) closes[dt] = c; });
+      if (Object.keys(closes).length) { byStock[sym] = closes; okStocks++; }
+    } catch (e) {}
+  }
+  return { ok: true, updatedAt: Date.now(), okStocks: okStocks, stockCount: Object.keys(byStock).length, byStock: byStock };
 }
 
 async function proxyFinMindInstitution(env, offset, limit) {
